@@ -73,13 +73,10 @@ this course.
 - http://www.math.chalmers.se/Stat/Grundutb/GU/MSG500/A13/Lecture10.pdf
 - http://socserv.socsci.mcmaster.ca/jfox/Courses/soc740/lecture-5-notes.pdf
 - http://www.econ.uiuc.edu/~wsosa/econ471/GLSHeteroskedasticity.pdf
--
-  http://www.gs.washington.edu/academics/courses/akey/56008/lecture/lecture9.pdf
+- http://www.gs.washington.edu/academics/courses/akey/56008/lecture/lecture9.pdf
 - http://data.princeton.edu/wws509/
--
-  http://socserv.socsci.mcmaster.ca/jfox/Courses/soc740/lecture-11-notes.pdf
--
-  http://socserv.socsci.mcmaster.ca/jfox/Courses/soc761/mixed-models.pdf
+- http://socserv.socsci.mcmaster.ca/jfox/Courses/soc740/lecture-11-notes.pdf
+- http://socserv.socsci.mcmaster.ca/jfox/Courses/soc761/mixed-models.pdf
 - http://kbroman.org/Tools4RR/assets/lectures/01_intro.pdf
 - http://www.stat.cmu.edu/~cshalizi/statcomp/14/
   
