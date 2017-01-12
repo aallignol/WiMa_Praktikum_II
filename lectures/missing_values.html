@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Missing Values</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Missing Values</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="introduction-1" class="slide level2">
+<h1>Introduction</h1>
+<p>Missing data are ubiquitous</p>
+<ul>
+<li>Missing data for some variables (e.g., a test not done…)</li>
+<li>for some cases (e.g., record lost)</li>
+</ul>
+<p>Bad handling of missing data can lead to</p>
+<ul>
+<li>Blurred effect estimates</li>
+<li>and/or biased effect estimates</li>
+</ul>
+</section></section>
+<section><section id="types-of-missing-data" class="titleslide slide level1"><h1>Types of missing data</h1></section><section id="types-of-missing-data-1" class="slide level2">
+<h1>Types of missing data</h1>
+<p>Suppose that the data set is a <span class="math inline">\(n \times p\)</span> matrix <span class="math inline">\(Y = (Y_{ij})\)</span></p>
+<p>Let <span class="math inline">\(M = (M_{ij})\)</span> be a matrix indicating whether the data point <span class="math inline">\(Y_{ij}\)</span> is</p>
+<ul>
+<li>present: <span class="math inline">\(M_{ij} = 0\)</span></li>
+<li>missing: <span class="math inline">\(M_{ij} = 1\)</span></li>
+</ul>
+<p>The missingness mechanism is supposed to be modelled by a set of probability distributions <span class="math inline">\({\cal L}(M | \psi)\)</span></p>
+</section><section id="missing-completely-at-random" class="slide level2">
+<h1>Missing completely at random</h1>
+<p>if missingness is independent of the data,</p>
+<p><span class="math display">\[
+{\text{Pr}}(M = m| Y, \psi) = {\text{Pr}}(M = m | \psi) \quad \text{for all $m$ and $\psi$},
+\]</span></p>
+<p>then the missingness model is said to be <em>Missing Completely At Random</em> (MCAR)</p>
+<p>Because the mechanism of missingness is only due to chance, deleting MCAR data will not bias the results, but the effective sample size is lowered (loss of efficiency)</p>
+</section><section id="missing-at-random" class="slide level2">
+<h1>Missing at random</h1>
+<p>Let <span class="math inline">\(Y = ({Y_{\text{mis}}}, {Y_{\text{obs}}})\)</span> the partition of the data into observed and missing data where <span class="math inline">\(Y_{ij}\)</span> is part of <span class="math inline">\({Y_{\text{mis}}}\)</span> iff <span class="math inline">\(M_{ij} = 1\)</span> and part of <span class="math inline">\({Y_{\text{obs}}}\)</span> otherwise</p>
+<p>If the missingness only depends on the observed data,</p>
+<p><span class="math display">\[
+{\text{Pr}}(M = m | Y, \psi) = {\text{Pr}}(M = m | {Y_{\text{obs}}}, \psi)\quad \text{for all $m$ and $\psi$},
+\]</span></p>
+<p>then the missingness is said to be <em>Missing At Random</em> (MAR)</p>
+</section><section id="missing-not-at-random" class="slide level2">
+<h1>Missing not at random</h1>
+<p>If the missingness depends on unobserved data (i.e., MAR does not hold) then the missingness model is said to be <em>Missing Not At Random</em> (MNAR)</p>
+<p>That’s the most annoying situation…</p>
+<p>but sometimes it is possible to make meaningful models of the missingness mechanism;</p>
+<p>This will be based on partially untestable assumptions, and a sensitivity analysis often is appropriate.</p>
+</section><section id="introduction-2" class="slide level2">
+<h1>Introduction</h1>
+<p>Naive ways of dealing with missingness usually assume MCAR without thinking</p>
+<p>Large improvements in handling missing data can be had by using appropriate methods and exploiting the MAR assumption</p>
+<p>MNAR is another beast…</p>
+<p>We focus on MAR data in this lecture</p>
+</section></section>
+<section><section id="how-not-to-handle-missing-data" class="titleslide slide level1"><h1>How <strong>not</strong> to handle missing data</h1></section><section id="bad-ways-to-handle-missing-data" class="slide level2">
+<h1>Bad ways to handle missing data</h1>
+<p><strong>Deletion methods</strong></p>
+<ul>
+<li><p><em>Listwise deletion</em>: delete the entire observation if any values are missing</p>
+<p>That’s what, e.g., <code>lm()</code>, <code>glm()</code> does if either outcome variable or dependent variables are missing</p>
+<p>For longitudinal models (e.g., <code>lmer</code>), listwise deletion only if explanatory variables are missing</p></li>
+<li><p><em>Pairwise deletion</em>: delete a pair of observations if either of the values are missing</p></li>
+</ul>
+<p>If the missing data are <em>MCAR</em>, deletions will result in <em>unbiased</em> estimates</p>
+<p>But:</p>
+<ul>
+<li>Reduction in statistical power if MCAR</li>
+<li>Biased estimates if MAR or MNAR</li>
+</ul>
+</section><section id="bad-ways-to-handle-missing-data-1" class="slide level2">
+<h1>Bad ways to handle missing data</h1>
+<p><strong>Single imputation methods</strong></p>
+<p>Single imputation methods replace missing data with some type of data</p>
+<ul>
+<li><em>Single:</em> One value used</li>
+<li><em>Imputation:</em> Replace missing data with value</li>
+</ul>
+<p>One can then use the entire data set for fitting the model</p>
+<p><strong>BUT</strong> biased parameter estimates and standard errors even if the missing data are MCAR</p>
+</section><section id="bad-ways-to-handle-missing-data-2" class="slide level2">
+<h1>Bad ways to handle missing data</h1>
+<p><strong>Last Observation Carried Forward</strong> (LOCF; for longitudinal data)</p>
+<p>The idea of LOCF is to replace observations that dropped out by the last available value</p>
+<ul>
+<li><p>That assumes that the variable do not change after drop out</p>
+<p>Thought to be conservative (assuming a monotone beneficial effect of a treatment)</p>
+<p>The other way around, it can exaggerate group differences</p></li>
+</ul>
+</section><section id="bad-ways-to-handle-missing-data-3" class="slide level2">
+<h1>Bad ways to handle missing data</h1>
+<p><strong>Summary</strong></p>
+<p>All the methods presented so far are bad for handling missing values</p>
+<ul>
+<li><p>They all lead to too small standard errors (→ inflation of the type I error)</p></li>
+<li><p>Parameter estimates likely to be biased (in either direction)</p>
+<ul>
+<li>Exception is deletion under MCAR</li>
+</ul></li>
+</ul>
+</section></section>
+<section><section id="preferred-methods-for-dealing-with-missing-values" class="titleslide slide level1"><h1>Preferred methods for dealing with missing values</h1></section><section id="multiple-imputation" class="slide level2">
+<h1>Multiple Imputation</h1>
+<p>Let <span class="math inline">\(Q\)</span> be the population quantity of interest. For instance a regression coefficient</p>
+<p>If all the data have been observed, estimates and inferences for <span class="math inline">\(Q\)</span> would have been based on the complete-data posterior density</p>
+<p><span class="math display">\[
+f(Q|{Y_{\text{obs}}}, {Y_{\text{mis}}})
+\]</span></p>
+<p>As is <span class="math inline">\({Y_{\text{mis}}}\)</span> is not observed, inferences have to be based on the actual posterior density</p>
+<p><span class="math display">\[
+f(Q|{Y_{\text{obs}}}) = \int f(Q|{Y_{\text{obs}}}, {Y_{\text{mis}}})f({Y_{\text{mis}}}|{Y_{\text{obs}}}){\text{d}}{Y_{\text{mis}}}\]</span></p>
+</section><section id="multiple-imputation-1" class="slide level2">
+<h1>Multiple imputation</h1>
+<p><span class="math display">\[
+f(Q|{Y_{\text{obs}}}) = \int f(Q|{Y_{\text{obs}}}, {Y_{\text{mis}}})f({Y_{\text{mis}}}|{Y_{\text{obs}}}){\text{d}}{Y_{\text{mis}}}\]</span></p>
+<p>The actual posterior density of <span class="math inline">\(Q\)</span> can be obtained by averaging the complete posterior density over the posterior predictive distribution of <span class="math inline">\({Y_{\text{mis}}}\)</span></p>
+<p>In a nutshell, the idea behind MI is to independently draw multiple times from <span class="math inline">\(f({Y_{\text{mis}}}| {Y_{\text{obs}}})\)</span>.</p>
+<p>Then multiple imputation allows approximating the above equation by separately analysing each data set completed by imputation and then combining the results</p>
+</section><section id="multiple-imputation-2" class="slide level2">
+<h1>Multiple imputation</h1>
+<p>The idea of multiple imputation is</p>
+<ol type="1">
+<li>Impute missing values by drawing from the observed values</li>
+<li>Repeat the process several times</li>
+<li>Average the results in order to get an estimate with a measure of uncertainty that accounts for the uncertainty due to imputation</li>
+</ol>
+<figure>
+<img src="graphics/MI_schema.png" />
+</figure>
+</section><section id="multiple-imputation-a-simple-example" class="slide level2">
+<h1>Multiple imputation — a simple example</h1>
+<pre class="r"><code>set.seed(10)
+x &lt;- c(sample(1:10, 7, TRUE), rep(NA, 3))
+x</code></pre>
+<pre><code> [1]  6  4  5  7  1  3  3 NA NA NA</code></pre>
+</section><section id="multiple-imputation-a-simple-example-1" class="slide level2">
+<h1>Multiple imputation — a simple example</h1>
+<ul>
+<li>Compute mean using case deletion</li>
+</ul>
+<pre class="r"><code>mean(x, na.rm = TRUE)</code></pre>
+<pre><code>[1] 4.142857</code></pre>
+<ul>
+<li>Standard error</li>
+</ul>
+<pre class="r"><code>sd(x, na.rm = TRUE)/sqrt(sum(!is.na(x)))</code></pre>
+<pre><code>[1] 0.7693093</code></pre>
+<ul>
+<li>Single mean imputation</li>
+</ul>
+<pre class="r"><code>x_imp &lt;- c(x[!is.na(x)], rep(mean(x, na.rm = TRUE), 3))
+sd(x_imp)/sqrt(10)</code></pre>
+<pre><code>[1] 0.5255383</code></pre>
+</section><section id="multiple-imputation-a-simple-example-2" class="slide level2">
+<h1>Multiple imputation — a simple example</h1>
+<ul>
+<li>Now let’s impute several times to generate a list of imputed vectors:</li>
+</ul>
+<pre class="r"><code>imp &lt;- replicate(15, c(x[!is.na(x)], sample(x[!is.na(x)], 3, TRUE)), simplify = FALSE)
+imp</code></pre>
+<pre><code>[[1]]
+ [1] 6 4 5 7 1 3 3 4 1 7
+
+[[2]]
+ [1] 6 4 5 7 1 3 3 1 7 6
+
+[[3]]
+ [1] 6 4 5 7 1 3 3 1 5 7
+
+[[4]]
+ [1] 6 4 5 7 1 3 3 6 4 5
+
+[[5]]
+ [1] 6 4 5 7 1 3 3 3 3 1
+
+[[6]]
+ [1] 6 4 5 7 1 3 3 3 5 5
+
+[[7]]
+ [1] 6 4 5 7 1 3 3 1 3 4
+
+[[8]]
+ [1] 6 4 5 7 1 3 3 3 5 7
+
+[[9]]
+ [1] 6 4 5 7 1 3 3 6 4 3
+
+[[10]]
+ [1] 6 4 5 7 1 3 3 5 3 3
+
+[[11]]
+ [1] 6 4 5 7 1 3 3 3 1 7
+
+[[12]]
+ [1] 6 4 5 7 1 3 3 4 4 6
+
+[[13]]
+ [1] 6 4 5 7 1 3 3 3 4 4
+
+[[14]]
+ [1] 6 4 5 7 1 3 3 6 7 6
+
+[[15]]
+ [1] 6 4 5 7 1 3 3 3 5 3</code></pre>
+</section><section id="multiple-imputation-a-simple-example-3" class="slide level2">
+<h1>Multiple imputation — a simple example</h1>
+<ul>
+<li>Mean for each imputed vector</li>
+</ul>
+<pre class="r"><code>means &lt;- sapply(imp, mean)
+means</code></pre>
+<pre><code> [1] 4.1 4.3 4.2 4.4 3.6 4.2 3.7 4.4 4.2 4.0 4.0 4.3 4.0 4.8 4.0</code></pre>
+<ul>
+<li>Average over the imputed vectors</li>
+</ul>
+<pre class="r"><code>grandm &lt;- mean(means)
+grandm</code></pre>
+<pre><code>[1] 4.146667</code></pre>
+</section><section id="multiple-imputation-a-simple-example-4" class="slide level2">
+<h1>Multiple imputation — a simple example</h1>
+<ul>
+<li><p>Obtain standard errors</p>
+<p>We need to combine the within- and between-imputation variance</p></li>
+</ul>
+<pre class="r"><code>ses &lt;- sapply(imp, sd)/sqrt(10)
+within &lt;- mean(ses)
+between &lt;- sum((means - grandm)^2)/(length(imp) - 1)
+
+grandvar &lt;- within + ((1 + (1/length(imp))) * between)
+grandse &lt;- sqrt(grandvar)
+grandse</code></pre>
+<pre><code>[1] 0.8387083</code></pre>
+<p>Note that the SE is bigger than that of the complete case analysis. That’s actually a good thing because we need to take into account the uncertainty due to the imputation</p>
+</section><section id="imputing-the-missing-data" class="slide level2">
+<h1>Imputing the missing data</h1>
+<p>Let the hypothetically complete data be a partially observed random sample from the multivariate distribution <span class="math inline">\(P(Y | \theta)\)</span>, with <span class="math inline">\(\theta\)</span> a vector of unknown parameters.</p>
+<p>One approach is to assume that <span class="math inline">\(P(Y | \theta)\)</span> can be modelled by a joint multivariate distribution, e.g., multivariate normal. Then the imputed values can be drawn from the corresponding predictive distribution.</p>
+<p>Although theoretically sound this approach is limited if <span class="math inline">\(Y\)</span> contains a mix of continuous and binary variables</p>
+</section><section id="fully-conditional-specification" class="slide level2">
+<h1>Fully conditional specification</h1>
+<p>The idea of the fully conditional specification is to obtain a posterior distribution of <span class="math inline">\(\theta\)</span> by sampling iteratively from conditional distribution of the form</p>
+<p><span class="math display">\[
+\begin{array}{l}
+p(Y_1 | Y_{-1}, \theta_1) \\
+\vdots \\
+p(Y_p | Y_{-p}, \theta_p) \\
+\end{array}
+\]</span></p>
+<p><span class="math inline">\(\theta_1, \cdots, \theta_p\)</span> are specific to the respective conditional densities</p>
+</section><section id="mice" class="slide level2">
+<h1>MICE</h1>
+<p>Multiple Imputation by Chained Equations is a popular implementation of the fully conditional specification. The algorithm works as follows</p>
+<p>For the first iteration <span class="math inline">\(Y_j^{(0)}\)</span>, random values of the observed <span class="math inline">\(Y_j\)</span> are drawn</p>
+<p>Now assume that the algorithm is at the <span class="math inline">\(t\)</span>-th iteration. The imputations at the next iteration are random draws from</p>
+<p><span class="math display">\[
+\begin{array}{l}
+\theta_1^{*(t)} \sim p(\theta_1| Y_{1;\text{obs}}, Y_{-1}^{(t-1)}) \\
+Y_1^{(t)} \sim p(Y_1 | Y_{1;\text{obs}}, Y_{-1}^{(t-1)}; \theta_1^{*(t)}) \\
+\vdots\\
+\theta_p{*(t)} \sim p(\theta_p| Y_{p;\text{obs}}, Y_{-p}^{(t)}) \\
+Y_p^{(t)} \sim p(Y_p | Y_{p;\text{obs}}, Y_{-p}^{(t)}; \theta_p^{*(t)}) \\
+\end{array}
+\]</span></p>
+</section><section id="the-imputation-models" class="slide level2">
+<h1>The imputation models</h1>
+<p>We need to decide on</p>
+<ul>
+<li>The structural form of the imputation model; usually steered by the scale of the variable to impute</li>
+<li>Which variables to include: As many relevant variables as possible. Note that the <em>outcome variable</em> as well as the <em>dependent variables</em> included in the <em>analysis model</em> should be included</li>
+<li>Order in which variables should be imputed</li>
+<li>Number of iterations of the algorithm. It’s usually fast, but convergence should be monitored</li>
+<li>Number of imputed data sets <span class="math inline">\(m\)</span>. Too low leads to undercoverage. Some argues that <span class="math inline">\(m=5\)</span> is enough; others say <span class="math inline">\(m \geq  50\)</span></li>
+</ul>
+</section><section id="fully-conditional-specification-1" class="slide level2">
+<h1>Fully conditional specification</h1>
+<p><strong>Pros:</strong></p>
+<p>FCS is extremely flexible</p>
+<ul>
+<li>One model per variable to impute permits to avoid implausible values (e.g., gender equal to 0.7)</li>
+<li>There is ways to specify how some variables are related in order to avoid pregnant fathers</li>
+<li>Passive imputation: Impute height and weight. The software takes care of BMI</li>
+<li>Shown to work quite well in practice</li>
+<li>Can be extended to MNAR by specifying the right missing data mechanism</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Theoretical rational not well established</li>
+<li>Appropriateness of the algorithm mostly demonstrated through simulation studies. Some work might still be needed in order to identify the boundaries at which the algorithm breaks down</li>
+</ul>
+</section><section id="analysing-multiply-imputed-data" class="slide level2">
+<h1>Analysing Multiply imputed data</h1>
+<p>Let <span class="math inline">\(\hat{Q}_i\)</span> be the estimate from the <span class="math inline">\(i\)</span>-th data set ad <span class="math inline">\(S_i\)</span> the corresponding variance.</p>
+<p>The combined estimate of <span class="math inline">\(Q\)</span> is</p>
+<p><span class="math display">\[
+\bar{Q} = \frac{1}{m} \sum_{i= 1}^m \hat{Q}_i
+\]</span></p>
+<p>The combined variance depends on the within-imputation variance</p>
+<p><span class="math display">\[
+\bar{S} = \frac{1}{m} \sum_{i= 1}^m S_i
+\]</span></p>
+<p>and the between-imputation variance</p>
+<p><span class="math display">\[
+B = \frac{1}{m - 1}\sum_{i = 1}^m (\hat{Q}_i - \bar{Q})^2
+\]</span></p>
+<p>Then the total variance is</p>
+<p><span class="math display">\[
+T = \bar{S} + (1 + m^{-1})B
+\]</span></p>
+</section><section id="summary" class="slide level2">
+<h1>Summary</h1>
+<ul>
+<li><p>FCS provides a flexible method for dealing with missing values</p></li>
+<li><p>Other methods exist:</p>
+<p><strong>Full Information Likelihood Strategy</strong>: integrates out the missing data when fitting the desired model; Needs a specification of the full data likelihood; Works under MAR and MNAR (with more assumptions)</p>
+<p><strong>Inverse probability weighting</strong>: Weight cases by their probability of having complete data</p>
+<p>E.g., an individual with a low probability of being a complete case will receive more weight (and count, say, 3 times)</p>
+<p>You need a model for this probability</p></li>
+</ul>
+<!-- # Other methods for dealing with missing data # -->
+<!-- ## Maximum likelihood ## -->
+<!-- Let  -->
+<!-- $$ -->
+<!-- L = \prod f(y; \theta) -->
+<!-- $$ -->
+<!-- be the likelihood for the full data -->
+<!-- One can show, under the MAR assumption, that  -->
+<!-- $$ -->
+<!-- f^*(y_{\text{obs}}) = \sum_{y_{\text{mis}}} f(y; \theta) -->
+<!-- $$  -->
+<!-- If the variables are continuous -->
+<!-- $$ -->
+<!-- f^*(y_{\text{obs}}) = \int f(y; \theta)d y_{\text{mis}} -->
+<!-- $$ -->
+<!-- Thus under MAR, a likelihood based on the observed data permits to -->
+<!-- obtain estimates of $\theta$ by integrating out the missing values -->
+<!-- &rarr; One needs to write down the full likelihood and estimate it -->
+<!-- (that's getting easier) -->
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

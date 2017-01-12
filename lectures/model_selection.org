@@ -1,0 +1,32 @@
+#+title: Plan for lecture on model selection
+#+author: Arthur Allignol
+
+* Introduction
+
+- Aim of model/variable selection (ripley)
+- difference between prediction and explanation (ripley)
+- Why it's difficult ! (cosma's simulation) + phantom p-values
+- Keep the full model!
+
+* Some criterions for model selection
+
+- AIC
+- BIC
+- other?
+
+* Stepwise strategies und why they are a bad idea
+
+* How to do it
+
+- test set; validation set
+- Cross-validation 
+-  bootstrap
+
+* Model averaging
+
+* Some automatic techniques
+
+- shrinkage
+- trees
+- other?
+

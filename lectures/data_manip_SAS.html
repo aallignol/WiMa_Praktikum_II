@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Data manipulation in SAS</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Data manipulation in SAS</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="illustration" class="titleslide slide level1"><h1>Illustration</h1></section><section id="illustration-1" class="slide level2">
+<h1>Illustration</h1>
+<p>Fake data set <code>df.csv</code></p>
+<pre><code>proc import datafile = &#39;/folders/myshortcuts/WiMa_Praktikum/lectures/illustration/df.csv&#39;
+    out = df
+    dbms = csv
+    replace;
+run;
+
+proc print data = df(obs = 5);
+run;</code></pre>
+<figure>
+<img src="illustration/figure/df.png" />
+</figure>
+</section><section id="illustration-2" class="slide level2">
+<h1>Illustration</h1>
+<pre><code>proc contents data = df;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/df_content.png" />
+</figure>
+<ul>
+<li>Need to change the format of <code>a_factor</code> to numeric</li>
+</ul>
+<pre><code>data df;
+    set df;
+    newfactor = input(a_factor, 3.);
+run;</code></pre>
+</section></section>
+<section><section id="sas-labels" class="titleslide slide level1"><h1>SAS Labels</h1></section><section id="labelling" class="slide level2">
+<h1>Labelling</h1>
+<ul>
+<li>Both variables and values can be labelled</li>
+<li>Once created, these labels will appear in the output of statistical procedures
+<ul>
+<li>Nicer and clearer output</li>
+</ul></li>
+</ul>
+</section><section id="labels-for-variables" class="slide level2">
+<h1>Labels for variables</h1>
+<pre><code>data df;
+    set df;
+    label visit_1 = &quot;Measure at first visit (mm)&quot;
+        visit_2 = &quot;Measure at second visit (mm)&quot;
+        visit_3 = &quot;Measure at third visit (mm)&quot;;
+run;
+
+proc means data = df;
+var visit_1 visit_2 visit_3;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/df_means.png" />
+</figure>
+</section><section id="labels-for-values" class="slide level2">
+<h1>Labels for values</h1>
+<p>Specified through creating new formats</p>
+<pre><code>proc format;
+    value dis 1 = &#39;Horrible disease&#39; 0=&#39;Healthy&#39;;
+    value factor_one 1 = &#39;Factor present&#39; 0 = &#39;Factor absent&#39;;
+    value factor_two 1-2=&#39;low&#39; 3 = &#39;medium&#39; 4-5 = &#39;high&#39;;
+run;
+
+* an example in proc freq;
+proc freq data = df;
+    format disease dis. another_factor factor_two.;
+    tables disease * another_factor;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/df_freq.png" />
+</figure>
+</section></section>
+<section><section id="dates" class="titleslide slide level1"><h1>Dates</h1></section><section id="dates-and-times" class="slide level2">
+<h1>Dates and times</h1>
+<p>SAS handles 3 types of date and time values</p>
+<ul>
+<li>Time values (<em>internal</em>: Number of seconds since midnight)</li>
+<li>Date values (<em>internal</em>: Number of days since 1.1.1970)</li>
+<li>Datetime values (<em>internal</em>: Number of seconds since 1.1.1970)</li>
+</ul>
+<p><strong>Example:</strong> Create some dates and times. Note that a <code>proc print</code> will display the internal representation</p>
+<pre><code>data some_dates;
+    time1 = &#39;15:00&#39;t;
+    date1 = &#39;18jun2016&#39;d;
+    datetime1 = &#39;3nov1995:15:00:00&#39;dt;
+run;</code></pre>
+</section><section id="format-for-dates-and-times" class="slide level2">
+<h1>Format for dates and times</h1>
+<pre><code>data test_date;
+    time1 = 1090013;  format time1  datetime.;
+    date1 = 9013;    format date1  date9.;
+    time2 = time1;    format time2  timeampm.;
+    date2 = date1;    format date2  month.;
+    date3 = date1;    format date3  DDMMYYB10.;
+    
+    new_date = date1 - 360; * math operation work with dates;
+    new_date0 = new_date; format new_date0 date9.;
+    new_date2 = month(new_date);    * extract month;
+    
+run;</code></pre>
+<figure>
+<img src="illustration/figure/dates.png" />
+</figure>
+</section></section>
+<section><section id="text-processing" class="titleslide slide level1"><h1>Text processing</h1></section><section id="concatenate" class="slide level2">
+<h1>Concatenate</h1>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>cat</code></td>
+<td style="text-align: left;">preserve all spaces</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>cats</code></td>
+<td style="text-align: left;">remove trailing blanks</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>catt</code></td>
+<td style="text-align: left;">remove all blanks</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>catx</code></td>
+<td style="text-align: left;">join with a separator (first argument)</td>
+</tr>
+</tbody>
+</table>
+<pre><code>data text1;
+    x1 = &#39;cats &#39;;
+    x2 = &#39; apples&#39;;
+    x3 = &#39;and dogs&#39;;
+
+    all1 = cat(of x1-x3); /* same as cat(x1, x2, x3) */
+    all2 = cats(of x1-x3);
+    all3 = catt(of x1-x3);
+    all4 = catx(&quot;|&quot;, of x1-x3);
+
+    put all1=;
+    put all2=;
+    put all3=;
+    put all4=;
+run;</code></pre>
+<pre><code>all1=cats  applesand dogs
+all2=catsapplesand dogs
+all3=cats applesand dogs
+all4=cats|apples|and dogs</code></pre>
+</section><section id="remove-characters" class="slide level2">
+<h1>Remove characters</h1>
+<pre><code>data text2;
+    expr1 = &#39;A; simple; sentence&#39;;
+    new = compress(expr1, &quot;;&quot;);
+    put new=;
+
+    expr2 = &#39;122-ll43 76&#39;;
+    new2 = compress(expr2, &quot;-&quot;, &#39;d&#39;); * remove &#39;-&#39; and any digit;
+    put new2=;
+
+    expr3 = &#39;1   2   4   5     7&#39;;
+    new3 = compress(expr3, , &#39;s&#39;); * Remove spaces;
+    put new3=;
+run;</code></pre>
+<pre><code>new=A simple sentence
+new2=ll
+new3=12457</code></pre>
+</section><section id="simple-match-and-replacement" class="slide level2">
+<h1>Simple match and replacement</h1>
+<pre><code>data text3;
+    a = count(&quot;banana&quot;, &quot;a&quot;); * count the number of a&#39;s;
+    put a=;
+
+    where = &quot;university of california&quot;; * Position of &#39;cal&#39; in the string;
+    i = index(where,&quot;cal&quot;);
+    put i=;
+
+    hihi = reverse(where); 
+    put hihi=;
+
+    up = upcase(where); 
+    put up=;
+
+    new = translate(where, &#39;UC&#39;, &#39;uc&#39;); * Change u&#39;s and c&#39;s into U&#39;s and C&#39;s 
+    put new=;
+
+    new2 = tranwrd(where, &#39;university&#39;, &#39;beach&#39;); * Replace words;
+    put new2=;
+run;</code></pre>
+<pre><code>a=3
+i=15
+hihi=ainrofilac fo ytisrevinu
+up=UNIVERSITY OF CALIFORNIA
+new=University of California
+new2=beach of california</code></pre>
+</section></section>
+<section><section id="data-manipulation" class="titleslide slide level1"><h1>Data manipulation</h1></section><section id="row-subscripting" class="slide level2">
+<h1>Row subscripting</h1>
+<ul>
+<li>With a condition</li>
+</ul>
+<pre><code>data ulm;
+    set df;
+    if upcase(center) eq &#39;ULM&#39; then delete;
+run;</code></pre>
+<ul>
+<li><code>where</code> statement</li>
+</ul>
+<pre><code>data high;
+    set df(where = (another_factor in (4 5)));
+run;</code></pre>
+</section><section id="column-subscripting" class="slide level2">
+<h1>Column subscripting</h1>
+<ul>
+<li><code>Keep</code> every variables starting with <code>visit</code> (<code>:</code> is a <em>wildcard</em>)</li>
+</ul>
+<pre><code>data visit;
+    set df;
+    keep visit:;
+run;</code></pre>
+<ul>
+<li>Drop every variables between <code>id</code> and <code>center</code></li>
+</ul>
+<pre><code>data visit2;
+    set df;
+    drop id--center;
+run;</code></pre>
+<ul>
+<li>Keep only numeric variables</li>
+</ul>
+<pre><code>data numeric;
+    set df;
+    keep id-numeric-visit_3_d;
+run;</code></pre>
+</section><section id="column-subscripting-1" class="slide level2">
+<h1>Column subscripting</h1>
+<ul>
+<li>Keep character variables</li>
+</ul>
+<pre><code>data char;
+    set df;
+    keep id-character-visit_3_d;
+    run;</code></pre>
+<ul>
+<li>Remove <code>visit_1</code> to <code>visit_3</code></li>
+</ul>
+<pre><code>data sans_visit;
+    set df;
+    drop visit_1-visit_3;
+run;</code></pre>
+</section><section id="proc-sql" class="slide level2">
+<h1>proc SQL</h1>
+<p><code>proc sql</code> permits to sort, summarize, subset, join (merge), and concatenate datasets, create new variables, and print the results or create a new table or view all in one step.</p>
+<ul>
+<li>A mix of SAS and SQL syntax</li>
+<li>Does not need sorted data sets for merge operations</li>
+</ul>
+<p>The command starts with <code>proc sql</code> and ends with <code>quit;</code> (not <code>run</code>)</p>
+</section><section id="select-variables-with-proc-sql" class="slide level2">
+<h1>Select variables with proc sql</h1>
+<p>Create a data set <code>new</code> from <code>df</code> containing the variables <code>visit_1</code> to <code>visit_3</code></p>
+<pre><code>proc sql;
+    create table new as
+        select visit_1, visit_2, visit_3
+        from df
+quit;</code></pre>
+</section><section id="more-complicated" class="slide level2">
+<h1>More complicated</h1>
+<p>Create data set <code>new_new</code> based on <code>df</code></p>
+<ul>
+<li>select variable <code>id</code> and rename as <code>pat</code></li>
+<li>create <code>exp_visit</code> as <span class="math inline">\(\exp(\mbox{visit})\)</span></li>
+<li>select variables <code>visit_2</code>, <code>visit_3</code> and <code>visit_1_d</code> (with format change)</li>
+<li>Select only the individuals for which <code>center</code> equals <code>ulm</code> and <code>freiburg</code></li>
+<li>Finally, order by descending <code>pat</code></li>
+</ul>
+<pre><code>proc sql;
+    create table new_new as
+        select id as pat, exp(visit_1) as exp_visit1, visit_2, visit_3, visit_1_d format=date9.
+        from df
+        where center in (&quot;ulm&quot;, &quot;Freiburg&quot;)
+        order by id desc;
+quit;</code></pre>
+<figure>
+<img src="illustration/figure/sql_complicated.png" />
+</figure>
+</section><section id="array" class="slide level2">
+<h1>Array</h1>
+<p>Arrays in SAS permit to perform the same task on a group of variables</p>
+<pre><code>array arrayname variable_list &lt;$&gt;;</code></pre>
+<ol type="1">
+<li>All the variables in an array must be of the same type</li>
+<li>An array can not have the same name as a variable</li>
+<li>You can use the keyword <code>_temporary_</code> instead of a variable list</li>
+</ol>
+<pre><code>data test_array;
+    set df;
+    array x visit_1-visit_3;
+    array res{3};
+    do i=1 to dim(x);
+        res{i} = x{i} * 10;
+        end;
+    keep visit_1-visit_3 res:;
+run;</code></pre>
+</section></section>
+<section><section id="data-reshaping" class="titleslide slide level1"><h1>Data reshaping</h1></section><section id="proc-transpose" class="slide level2">
+<h1>proc transpose</h1>
+<p>The name says it all. The problem is that <code>proc transpose</code> can only manage one variable at a time. Thus we need to</p>
+<ul>
+<li>Transpose <code>visit_X</code></li>
+<li>Transpose <code>visit_X_d</code></li>
+<li>Merge back with the whole data set</li>
+</ul>
+<pre><code>proc transpose data = df
+    out = long1(rename=(col1=measure)) name = visit;
+    by id;
+    var visit_1-visit_3;
+run;
+
+proc transpose data = df
+    out = long2(rename=(col1=date)) name = visit;
+    by id;
+    var visit_1_d--visit_3_d;
+run;
+
+* and merge;
+data df_long;
+    merge long1
+          long2
+          df(keep = id a_factor another_factor disease center);
+    by id;
+run;</code></pre>
+</section><section id="reshape-using-a-data-step" class="slide level2">
+<h1>Reshape using a data step</h1>
+<pre><code>data df_long2;
+    set df;
+    
+    array m visit_1-visit_3;
+    array d visit_1_d--visit_3_d;
+    
+    do _i = 1 to dim(m);
+        measure = m(_i);
+        date = d(_i);
+        visit = _i;
+        output;
+    end;
+    
+    format date date9.;
+    keep id center a_factor another_factor disease measure date visit;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/df_long2.png" />
+</figure>
+</section><section id="always-check" class="slide level2">
+<h1>Always check !!!</h1>
+<pre><code>proc means data = df;
+    var visit_1-visit_3;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/df_means_check.png" />
+</figure>
+</section><section id="always-check-1" class="slide level2">
+<h1>Always check !!!</h1>
+<pre><code>* need to sort before using the by statement in proc means;
+proc sort data = df_long
+    out = df_long;
+    by visit;
+proc means data = df_long;
+    var measure;
+    by visit;
+    run;</code></pre>
+<figure>
+<img src="illustration/figure/df_long_check.png" />
+</figure>
+</section><section id="always-check-2" class="slide level2">
+<h1>Always check !!!</h1>
+<pre><code>proc sort data = df_long2
+    out = df_long2;
+    by visit;
+proc means data = df_long2;
+    var measure;
+    by visit;
+    run;</code></pre>
+<figure>
+<img src="illustration/figure/df_long2_check.png" />
+</figure>
+</section></section>
+<section><section id="data-merging" class="titleslide slide level1"><h1>Data Merging</h1></section><section id="combine-data-by-rows" class="slide level2">
+<h1>Combine data by rows</h1>
+<pre><code>data d1;
+    input x y $;
+    datalines;
+    1 a
+    4 b
+    5 g
+    7 y
+    ;
+run;
+
+data d2;
+    input x y $;
+    datalines;
+    6 r
+    9 g
+    4 j
+    6 t
+    ;
+run;</code></pre>
+<p>Note the $ sign after <code>y</code> to specify this variable as character</p>
+</section><section id="combine-data-by-rows-1" class="slide level2">
+<h1>Combine data by rows</h1>
+<pre><code>data row_bind;
+    set d1 d2;
+proc print data = row_bind;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/combine_rows.png" />
+</figure>
+</section><section id="combine-data-by-columns" class="slide level2">
+<h1>Combine data by columns</h1>
+<p>We first need to rename the columns of <code>d2</code>, otherwise SAS does nothing</p>
+<pre><code>data d3;
+    set d2(rename=(x=z y=w));
+run;</code></pre>
+</section><section id="combine-data-by-columns-1" class="slide level2">
+<h1>Combine data by columns</h1>
+<ul>
+<li>Either use 2 <code>set</code> statements</li>
+</ul>
+<pre><code>data col_bind;
+    set d1;
+    set d3;
+run;</code></pre>
+<ul>
+<li>Or merge by row numbers (which means, don’t specify any variable to merge on)</li>
+</ul>
+<pre><code>data col_bind2;
+    merge d1 d3;
+run;</code></pre>
+</section><section id="merging" class="slide level2">
+<h1>Merging</h1>
+<pre><code>data dd1;
+    input id letter $;
+    datalines;
+    20 k
+    1  j
+    3  h
+    7  a
+    13 c
+    8  s
+    ;
+run;
+
+data dd2;
+    input id digit;
+    datalines;
+    13 3
+    14 8
+    7  7
+    1  6
+    54 0
+    ;
+run;</code></pre>
+</section><section id="merging-1" class="slide level2">
+<h1>Merging</h1>
+<p>Before merging using the <code>merge</code> statement, data sets have to be sorted wrt the variables used for merging</p>
+<pre><code>proc sort data=dd1
+    out=dd1_sort;
+    by id;
+run;
+
+proc sort data=dd2
+    out=dd2_sort;
+    by id;
+run;</code></pre>
+</section><section id="merging-2" class="slide level2">
+<h1>Merging</h1>
+<p>By default SAS performs a full join</p>
+<pre><code>data ddmerge;
+    merge dd1_sort dd2_sort;
+    by id;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/merge_merge_full.png" />
+</figure>
+</section><section id="merging-3" class="slide level2">
+<h1>Merging</h1>
+<p>To perform other types of joins, use the <code>in=</code> directive</p>
+<ul>
+<li>That creates temporary variables indicating from which data the observations are coming from</li>
+</ul>
+<p><strong>Natural join</strong></p>
+<pre><code>data ddmerge_natural;
+    merge dd1_sort(in=in1) dd2_sort(in=in2);
+    by id;
+    if in1 eq 0 or in2 eq 0 then delete;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/merge_merge_natural.png" />
+</figure>
+</section><section id="merging-4" class="slide level2">
+<h1>Merging</h1>
+<p><strong>Left join</strong></p>
+<pre><code>data ddmerge_left;
+    merge dd1_sort(in=in1) dd2_sort(in=in2);
+    by id;
+    if in1 eq 0 then delete;
+run;</code></pre>
+<figure>
+<img src="illustration/figure/merge_merge_left.png" />
+</figure>
+</section><section id="merging-with-proc-sql" class="slide level2">
+<h1>Merging with proc SQL</h1>
+<p><strong>Natural join</strong></p>
+<pre><code>proc sql;
+    create table ddmerge_natural_sql as 
+        select *
+        from dd1 inner join dd2
+        on dd1.id=dd2.id;
+quit;</code></pre>
+<ul>
+<li>When the variables you join on don’t share the same name</li>
+</ul>
+<pre><code>data dd2_alt;
+    set dd2(rename=(id=pat));
+run;
+
+proc sql;
+    create table ddmerge_natural_sql2 as 
+        select *
+        from dd1 inner join dd2_alt
+        on dd1.id=dd2_alt.pat;
+quit;</code></pre>
+</section><section id="merging-with-proc-sql-1" class="slide level2">
+<h1>Merging with proc SQL</h1>
+<p><strong>Left join</strong></p>
+<pre><code>proc sql;
+    create table ddmerge_left_sql as
+    select *
+    from dd1 left join dd2
+    on dd1.id=dd2.id;
+quit;</code></pre>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

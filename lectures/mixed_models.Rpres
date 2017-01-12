@@ -1,0 +1,436 @@
+---
+title: Mixed-effects models
+author: Arthur Allignol
+transition: convex
+hlss: github
+smart: true
+theme: white
+slideNumber: true
+
+---
+
+```{r include=FALSE}
+require(knitr)
+opts_chunk$set(size="scriptsize", fig.path = "graphics/", comment = NA, dev = 'svg')
+
+require(ggplot2)
+library(dplyr)
+library(data.table)
+require(gridExtra)
+```
+
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\be}{\mathbf{b}}
+\newcommand{\b}{\boldsymbol\beta}
+\newcommand{\ve}{\boldsymbol\varepsilon{}}
+\newcommand{\hb}{\hat{\beta}}
+\newcommand{\E}{\text{E}}
+\newcommand{\var}{\text{var}}
+\newcommand{\cov}{\text{cov}}
+\newcommand{\cor}{\text{cor}}
+\newcommand{\I}{\mathbf{I}}
+
+# Introduction #
+
+## The normal linear model ##
+
+For the $i$-th observation, the linear model is 
+
+$$ 
+y_i = \beta_0 + \beta_1x_{1i} + \dots + \beta_qX_{qi} + \varepsilon_i,
+$$
+
+with $\varepsilon_i \sim {\cal N}(0, \sigma^2)$ 
+
+Written in a matrix form
+
+$$\y = \X\b + \ve$$
+
+with $\ve \sim {\cal N}(0, \I \sigma^2)$ and
+
+- $\y = (y_1, \dots, y_n)$ the response vector
+- $\X$ the design matrix
+- $\b = (\beta_1, \dots, \beta_p)^{T}$ the regression coefficients
+
+## Introduction ##
+
+*Hierarchical data* are collected when the sampling is performed at
+two or more levels, one *nested* within the other. E.g., 
+
+- Students within schools (2 levels)
+- Students within classrooms within schools (3 levels)
+- Individuals within communities within nations (3 levels)
+
+	(Non-nested data are also possible. E.g., high-school students who each
+	have multiple teachers)
+
+## Introduction ##
+
+*Longitudinal data* are collected when individuals are followed over
+time and several measurements are performed.
+
+- Annual data on employement and income for a sample of adults
+- Headache score at several visits following treatment
+
+&rArr; In these examples it is generally not reasonable to assume that
+observations within the same unit (e.g., school) or measurements
+within the same individual, are independent of each other
+
+## Introduction ##
+
+*Mixed-effect models* allow to take into account dependencies on
+hierarchical, longitudinal and other dependent data.
+
+- Unlike the standard linear model, mixed-effect models include more
+  than one source of random variations, i.e., more than one random
+  effect
+  
+- ANOVAs could accomodate these kind of dependencies but mixed models
+  are more general. They can deal with irregular and missing
+  observations 
+  
+# Linear mixed-effects model #
+
+## The linear mixed-effects model ##
+
+The *Laird-Ware form* of the linear mixed model
+
+$$
+y_{ij} = \beta_0 + \beta_1 x_{1ij} + \dots + \beta_q x_{qij} +
+b_{1i} z_{1ij} + \dots + b_{ri}z_{rij} + \varepsilon_{ij}
+$$
+
+where 
+
+- $y_{ij}$ is the value of the response variable for the $j$-th of
+  $n_i$ observations in the $i$-th of $M$ groups or clusters
+- $\beta_0, \dots, \beta_q$ are the fixed-effects coefficients, which
+  are identical for all groups
+- $x_{1ij}, \dots, x_{qij}$ are the fixed-effect regressors for
+  observation $j$ in group $i$ 
+  
+## The linear mixed-effects model ##
+
+$$
+y_{ij} = \beta_0 + \beta_1 x_{1ij} + \dots + \beta_q x_{qij} +
+b_{1i} z_{1ij} + \dots + b_{ri}z_{rij} + \varepsilon_{ij}
+$$
+
+- $b_{1i}, \dots, b_{ri}$ are the random-effect coefficients for group
+  $i$. 
+  
+	  - We assume $b_{ki} \sim {\cal N}(0, \psi_k^2)$, $\cov(b_{ki},
+		b_{k'i}) = \psi_{kk'}$, and $b_{ki}, b_{ki'}$ independent for $i \neq
+		i'$
+	  - The $b_{ki}$ are thought as random variables, not as
+		parameters. Therefor similar to the errors $\varepsilon_{ij}$
+  
+- $z_{1ij}, \dots, z_{rij}$ are the random effects regressors.
+  
+	  - The $z$s are almost always a subset of the $x$s
+	  - When there is a random intercept, $z_{1ij} = 1$
+
+- $\varepsilon_{ij}$ is the error for observation $j$ in group $j$
+	
+	- $\varepsilon_{ij} \sim {\cal N}(0, \sigma^2_{ijj})$. We assume
+      $\varepsilon_{ij}, \varepsilon_{i'j'}$ are independent for $i
+      \neq i'$
+
+## The linear mixed-effects model ##
+
+The Laird-Ware model in matrix form
+
+$$
+\y_i = \X_i\b + \Z_i\be_i + \ve_{i}
+$$
+
+where 
+
+- $\y_i$ is the $n_i \times 1$ response vector for observations in
+  group $i$ 
+- $\X_i$ is the $n_i \times p$ model matrix for the fixed effects for
+  observations in group $i$ 
+- $\be$ is the $p \times 1$ vector of fixed effect coefficients
+- $\Z_i$ if the $n_i \times r$ model matrix for the random effects
+  for observations in group $i$
+- $\be_i$ is the $r \times 1$ vector of random effect coefficients for
+  group $i$
+- $\ve_i$ id the $n_i \times 1$ vector of errors for observations in
+  group $i$
+  
+We assume that $\be_i \sim {\cal N}(0, \boldsymbol{\psi})$ and 
+
+$\ve_i \sim {\cal N}(0,
+\sigma^2\boldsymbol{\Lambda})$. $\I_{n_i}\sigma^2$ are the within-group
+errors that are homoscedastic and independent.
+
+# Inference #
+
+## Inference ##
+
+Linear mixed-effects models can be estimated by maximum likelihood.
+However, this method tends to underestimate the variance components. A
+modified version of maximum likelihood, known as *restricted maximum
+likelihood* is therefore often recommended; this provides consistent
+estimates of the variance components.
+
+Competing linear mixed-effects models can be compared
+using a likelihood ratio test. If however the models have been
+estimated by restricted maximum likelihood this test can only
+be used if both models have the same set of fixed effects.
+
+## Inference ##
+
+Inference for the $\beta$s follow from maximum likelihood theory
+
+Hypothesis testing and confidence intervals less obvious, e.g., 
+
+- *Testing the random effect*: $H_0: \sigma^2 = 0$ &rarr; at the
+  boundary of the parameter space
+- *F-tests*: degrees of freedom need to be estimated in some ways
+  (except for simple experimental designs)
+
+## Model Diagnostic ##
+
+The normality of the random effects as well as the normality of the
+residuals need to be checked.
+
+## Illustration ##
+
+- Data from the 1982 "High School and Beyond" survey, and pertain to
+  7185 U.S. high-school students from 160 schools — about 45 students
+  on average per school.
+	  - 70 of the high schools are Catholic schools and 90 are public
+		schools.
+
+
+- The object of the data analysis is to determine how students' math
+  achievement scores are related to their family socioeconomic status.
+	  - We will entertain the possibility that the level of math
+		achievement and the relationship between achievement and SES
+		vary among schools.
+	  - If there is evidence of variation among
+		schools, we will examine whether this variation is related to
+		school characteristics - in particular, whether the school is
+		a public school or a Catholic school and the average SES of
+		students in the school.
+
+# Longitudinal Studies #
+
+## Random Intercept Model ##
+
+Let $y_{ij}$ represent the observation made at time $t_j$ on individual $i$.
+A possible model for the observation $y_{ij}$ might be
+
+$$
+y_{ij} = \beta_0 + \beta_1 t_j + b_i + \varepsilon_{ij}.
+$$
+
+Here the total residual that would be present in the usual linear
+regression model has been partitioned into a subject-specific random
+component $b_i$ which is constant over time plus a residual
+$\varepsilon_{ij}$ which varies randomly over time.
+
+- $\E(b_i) = 0$ and $\var(b) = \sigma^2_b$ 
+- $\E(\varepsilon_{ij}) = 0$ with $\var(\varepsilon_{ij}) = \sigma^2$
+- $b_i$ and $\varepsilon_{ij}$ independent of each other and of time $t_j$
+
+$$
+\var(y_{ij}) = \var(u_i + \varepsilon_{ij}) = \sigma^2_b + \sigma^2
+$$
+
+## Random intercept ##
+
+The covariance between the total residuals at two time points $j$ and
+$k$ in the same individual is
+$\cov(b_i + \varepsilon_{ij}, b_i + \varepsilon_{ik}) = \sigma^2_b$.
+
+Note that these covariances are induced by the
+shared random intercept; for individuals with $b_i > 0$,
+the total residuals will tend to be greater than the mean,
+for individuals with $b_i < 0$ they will tend to be less than the mean.
+
+$$
+\cor(b_i + \varepsilon_{ij}, b_i + \varepsilon_{ik})
+     = \frac{\sigma^2_b}{\sigma^2_b + \sigma^2}.
+$$
+
+This is an *intra-class correlation* interpreted as the
+proportion of the total residual variance that is due to residual
+variability between subjects.
+
+## Random intercept and slope model ##
+
+In this model there are two types of random effects,
+the first modelling heterogeneity in intercepts, $b_i$,
+and the second modelling heterogeneity in slopes, $v_i$:
+
+$$
+y_{ij} = \beta_0 + \beta_1 t_j + b_i + v_i t_j + \varepsilon_{ij}
+$$
+
+The two random effects are assumed to have a bivariate
+normal distribution with zero means for both variables and variances
+$\sigma^2_b$ and $\sigma^2_v$ with covariance
+$\sigma_{uv}$:
+
+$$
+\var(b_i + v_i t_j + \varepsilon_{ij}) =
+\sigma^2_b + 2 \sigma_{bv} t_j + \sigma^2_v t_j^2 + \sigma^2
+$$
+
+which is no longer constant for different values of $t_j$.
+
+## Random Intercept and Slope Model ##
+
+$$
+\cov(b_i + v_i t_j + \varepsilon_{ij},
+     b_i + v_i t_{k} + \varepsilon_{ik}) =
+    \sigma^2_b + \sigma_{bv} (t_j - t_{k}) +
+    \sigma^2_v t_jt_{k}
+$$
+
+is not constrained to be the same for all pairs $t_j$ and $t_{k}$.
+
+## Illustration ##
+
+**Beat the blues**
+
+Depression is a major public health problem across the
+world. Antidepressants are the front line treatment, but many patients
+either do not respond to them, or do not like taking them. The main
+alternative is psychotherapy, and the modern 'talking treatments' such
+as *cognitive behavioural therapy* (CBT) have been shown to
+be as effective as drugs, and probably more so when it comes to
+relapse.
+
+The data to be used in this chapter arise from a clinical trial of
+an interactive, multimedia program known as 'Beat the Blues'
+designed to deliver cognitive behavioural therapy
+to depressed patients via a computer terminal.
+
+In a randomised controlled trial of the program, patients with
+depression recruited in primary care were randomised to either the
+Beating the Blues program, or to 'Treatment as Usual' (TAU).
+
+## Illustration ##
+
+Here, we concentrate on the *Beck Depression Inventory
+II* (BDI). Measurements on this variable were
+made on the following five occasions:
+
+- Prior to treatment,
+- Two months after treatment began and
+- At one, three and six months follow-up, i.e., at three,
+  five and eight months after treatment.
+
+There is interest here in assessing the effect of taking antidepressant
+drugs (`drug`, yes or no) and length of the current episode of
+depression (`length`, less or more than six months).
+
+
+# Generalized mixed-effects models #
+
+## Generalized mixed-effects models ##
+
+The Generalized linear mixed model is a straighforward extension of
+the generalized linear model, adding random effects to the linear
+predictors, and expressing the expected value of the response
+conditional of the random effects:
+
+$$
+\begin{align}
+g(\mu_{ij}) &= g[\E(y_{ij}) | b_{1i}, \dots, b_{1r}] = \eta_{ij} \\
+\eta_{ij} &= \beta_0 + \beta_1 x_{1ij} + \dots + \beta_q x_{qij} +
+b_{1i} z_{1ij} + \dots + b_{ri}z_{rij}
+\end{align}
+$$
+
+- The conditional distribution of $y_{ij}$ given the random effects is
+  a member of the exponential family
+- The variance of $y_{ij}$ is a function of $\mu_{ij}$ and a
+  dispersion parameter $\phi$
+- We further assume that the random effects are normally distributed
+  with mean 0 and covariance matrix $\boldsymbol\Psi$
+- The estimation of generalized linear mixed models by ML is not
+  straightforward, because the likelihood function includes
+  integrals that are analytically intractable.
+
+
+# Generalised Estimating Equations #
+
+## Introduction ##
+
+- The assumption of the independence of the repeated measurements
+  in an GLM will lead to estimated standard errors that are too small for
+  the between-subjects covariates (at least when the correlation
+  between the repeated measurements are positive) as a result of
+  assuming that there are more independent data points than are
+  justified.
+  
+Robust variance estimates can help to obtain reasonably satisfactory
+results on longitudinal data with a non-normal response
+
+But perhaps more satisfactory than these methods to simply
+'fix-up' the standard errors given by the independence model,
+would be an approach that fully utilises information on the data's
+structure, including dependencies over time: *GEE*. 
+
+## Generalised Estimating Equations (GEE) ##
+
+Let $Y_{ij}$ be a vector of random variables repre senting the responses
+on a given individual and let $\E Y_{ij} = \mu_{ij}$ which is linked to
+the predictors in some appropriate way
+
+$$
+g(\mu_{ij}) = \X_{ij}\b.
+$$
+
+and let 
+
+$$\var Y_{ij} = \var (Y_{ij}; \alpha, \beta)$$
+
+where $\alpha$ represents parameters that model the correlation
+structure within individuals. 
+
+Estimates for $\beta$ may be obtained based on the score equation 
+
+$$
+\sum_i \frac{\partial \mu_i^T}{\partial \beta}\var(Y_i)^{-1}(Y_i -
+\mu_i) = 0
+$$
+
+These can be seen as the multivariate analogue of those used for the
+quasi-likelihood.
+
+## Generalised Estimating Equations ##
+
+Estimates of the parameters of most interest, i.e., those that
+determine the average responses over time, are still valid even
+when the correlation structure is incorrectly specified
+
+But their standard errors might remain poorly estimated if the working
+correlation matrix is far from the truth.
+
+Possibilities
+for the working correlation matrix that are most frequently used
+in practice are:
+
+## Generalised Estimating Equations ##
+
+- An identity matrix: no correlation at all.
+- An exchangeable correlation matrix: with a single parameter which
+  gives the correlation of each pair of repeated measures.
+- An  autoregressive correlation matrix: also with a single parameter but
+  in which $\text{corr}(y_i, y_k) = \vartheta^{|k - i|}, i \not =
+  k$. With $\vartheta$ less than one this gives a pattern in which
+  repeated measures further apart in time are less correlated than
+  those that are closer to one another.
+- An unstructured correlation matrix: with $K(K-1)/2$ parameters in
+  which $\text{corr}(y_i, y_k) = \vartheta_{ik}$ and where $K$ is the
+  number of repeated measures.
+
+IMPORTANT: That's a marginal model whereas GLMM is conditional on the
+random effects

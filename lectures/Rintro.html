@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>(Quick) Introduction to R and literate programming</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">(Quick) Introduction to R and literate programming</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="what-is-r" class="slide level2">
+<h1>What is R?</h1>
+<ul>
+<li>R is <em>an environment for statistical computing and graphics</em>
+<ul>
+<li>free software (GPL license)</li>
+<li>Available for Linux, Solaris, Windows, Mac OSX</li>
+</ul></li>
+<li><p>Derived from the S language</p></li>
+<li><p>http://www.r-project.org/</p></li>
+<li>The strength of R is its community
+<ul>
+<li>≥ 6000 packages additional packages implementating the latest statistical techniques</li>
+<li>http://cran.r-project.org/</li>
+</ul></li>
+</ul>
+</section><section id="what-is-r-1" class="slide level2">
+<h1>What is R?</h1>
+<ul>
+<li>R is an interactive language
+<ul>
+<li>Statements converted to machine instructions as they are encountered</li>
+<li>Flexible but slower than compiled code</li>
+</ul></li>
+<li>Object oriented (kinda)</li>
+<li><p>R provides excellent graphics functionality (base graphics and additional packages)</p></li>
+<li><p>Can be used both as a glorified calculator or as a “real” programming language</p></li>
+</ul>
+</section></section>
+<section><section id="basics" class="titleslide slide level1"><h1>Basics</h1></section><section id="r-as-a-calculator" class="slide level2">
+<h1>R as a calculator</h1>
+<pre class="r"><code>1 + 1</code></pre>
+<pre><code>[1] 2</code></pre>
+<pre class="r"><code>2 + 3 * 4</code></pre>
+<pre><code>[1] 14</code></pre>
+<pre class="r"><code>sqrt(9)</code></pre>
+<pre><code>[1] 3</code></pre>
+<pre class="r"><code>pi</code></pre>
+<pre><code>[1] 3.141593</code></pre>
+</section><section id="r-as-a-smart-calculator" class="slide level2">
+<h1>R as a smart calculator</h1>
+<pre class="r"><code>x &lt;- 5            #allocate value to an object
+x = 5             #as above
+print(x)          # objects in console</code></pre>
+<pre><code>[1] 5</code></pre>
+<pre class="r"><code>x                 #same</code></pre>
+<pre><code>[1] 5</code></pre>
+<pre class="r"><code>a &lt;- sqrt(81)     #square root
+b &lt;- exp(2)       #exponential function
+c &lt;- log(50)      #logarithm
+a * b + c         #basic operations</code></pre>
+<pre><code>[1] 70.41353</code></pre>
+</section><section id="getting-help" class="slide level2">
+<h1>Getting help</h1>
+<ul>
+<li>At the R prompt</li>
+</ul>
+<pre class="r"><code>help(&quot;fun&quot;)
+?fun</code></pre>
+<ul>
+<li><p>The <strong>sos</strong> package (see next slide for installing packages) and the <code>findfn</code> function</p></li>
+<li>On the internet
+<ul>
+<li><a href="https://stat.ethz.ch/mailman/listinfo/r-help">R mailing list</a></li>
+<li><a href="http://stackoverflow.com/">stackoverflow</a></li>
+<li><a href="http://stats.stackexchange.com/">Cross Validated</a></li>
+</ul></li>
+</ul>
+</section><section id="packages" class="slide level2">
+<h1>Packages</h1>
+<ul>
+<li>Install package</li>
+</ul>
+<pre class="r"><code>install.packages(&quot;new_package&quot;)
+install.packages(c(&quot;new_package1&quot;, &quot;new_package2&quot;))</code></pre>
+<ul>
+<li>Update packages</li>
+</ul>
+<pre class="r"><code>update.packages()</code></pre>
+<ul>
+<li>Packages available from, e.g., <a href="http://cran.r-project.org/">CRAN</a></li>
+<li>CRAN <a href="http://cran.r-project.org/web/views/">task views</a> provide list of packages grouped by theme</li>
+</ul>
+</section></section>
+<section><section id="operations" class="titleslide slide level1"><h1>Operations</h1></section><section id="vector-operations" class="slide level2">
+<h1>Vector operations</h1>
+<pre class="r"><code># define vector by means of the
+# specification of its single elements
+W &lt;- c(1,2,3,5,9,7)  
+W</code></pre>
+<pre><code>[1] 1 2 3 5 9 7</code></pre>
+<pre class="r"><code># vector with a 3 (repeated 5 times)
+X &lt;- rep(3,5)        
+X</code></pre>
+<pre><code>[1] 3 3 3 3 3</code></pre>
+<pre class="r"><code># combine vectors 
+A &lt;- c(W,X)
+A</code></pre>
+<pre><code> [1] 1 2 3 5 9 7 3 3 3 3 3</code></pre>
+</section><section id="vector-operations-1" class="slide level2">
+<h1>Vector operations</h1>
+<pre class="r"><code># vector with values from 1 to 10 with stepsize 2
+Y &lt;- seq(0,10,2)     
+Y</code></pre>
+<pre><code>[1]  0  2  4  6  8 10</code></pre>
+<pre class="r"><code>#equals seq(0,10,1)
+Z &lt;- 0:10            
+Z</code></pre>
+<pre><code> [1]  0  1  2  3  4  5  6  7  8  9 10</code></pre>
+<pre class="r"><code># element-wise addition
+W+Y</code></pre>
+<pre><code>[1]  1  4  7 11 17 17</code></pre>
+<pre class="r"><code># element-wise multiplication
+W*Y</code></pre>
+<pre><code>[1]  0  4 12 30 72 70</code></pre>
+<pre class="r"><code># element-wise multiplication with a scalar
+5*W               </code></pre>
+<pre><code>[1]  5 10 15 25 45 35</code></pre>
+</section><section id="vector-operations-2" class="slide level2">
+<h1>Vector operations</h1>
+<pre class="r"><code>length(W)         #determine length of vector</code></pre>
+<pre><code>[1] 6</code></pre>
+<pre class="r"><code>t(W)%*%Y          #transposition and vector multiplication</code></pre>
+<pre><code>     [,1]
+[1,]  188</code></pre>
+<pre class="r"><code>W[4]              #select specific element</code></pre>
+<pre><code>[1] 5</code></pre>
+</section><section id="vector-operations-3" class="slide level2">
+<h1>Vector operations</h1>
+<pre class="r"><code>W[W&gt;2]</code></pre>
+<pre><code>[1] 3 5 9 7</code></pre>
+<pre class="r"><code>W[W&gt;2 &amp; W&lt;7]</code></pre>
+<pre><code>[1] 3 5</code></pre>
+<pre class="r"><code>which(W&gt;2)        #determine indices where a condition holds</code></pre>
+<pre><code>[1] 3 4 5 6</code></pre>
+</section><section id="matrix-operations" class="slide level2">
+<h1>Matrix operations</h1>
+<pre class="r"><code>A=matrix(0,nrow=2,ncol=3)   #Initialize 2x3 matrix including 0
+A</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    0    0    0
+[2,]    0    0    0</code></pre>
+<pre class="r"><code>A[1,3]=5          #allocate single value at position (1,3)
+A</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    0    0    5
+[2,]    0    0    0</code></pre>
+<pre class="r"><code>A[,2]=c(1,2)      #allocate values to a whole column (analogously with rows)
+A</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    0    1    5
+[2,]    0    2    0</code></pre>
+</section><section id="matrix-operations-1" class="slide level2">
+<h1>Matrix operations</h1>
+<pre class="r"><code>A[-3]             # A without the third element</code></pre>
+<pre><code>[1] 0 0 2 5 0</code></pre>
+<pre class="r"><code>B=matrix(c(1,1,1,2,2,2,3,3,3),3,3) #Initialize matrix with single values
+B</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    1    2    3
+[2,]    1    2    3
+[3,]    1    2    3</code></pre>
+<pre class="r"><code>C=diag(c(1,2,3))  #diagonal matrix
+C         </code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    1    0    0
+[2,]    0    2    0
+[3,]    0    0    3</code></pre>
+</section><section id="matrix-operations-2" class="slide level2">
+<h1>Matrix operations</h1>
+<pre class="r"><code>B * C               #element-wise operations</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    1    0    0
+[2,]    0    4    0
+[3,]    0    0    9</code></pre>
+<pre class="r"><code>B + C</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    2    2    3
+[2,]    1    4    3
+[3,]    1    2    6</code></pre>
+<pre class="r"><code>B %*% C             # matrix multiplication</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    1    4    9
+[2,]    1    4    9
+[3,]    1    4    9</code></pre>
+</section><section id="matrix-operations-3" class="slide level2">
+<h1>Matrix operations</h1>
+<pre class="r"><code>A</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    0    1    5
+[2,]    0    2    0</code></pre>
+<pre class="r"><code>(A &lt;- rbind(A, c(0, 1, 5))) #add row</code></pre>
+<pre><code>     [,1] [,2] [,3]
+[1,]    0    1    5
+[2,]    0    2    0
+[3,]    0    1    5</code></pre>
+<pre class="r"><code>(A &lt;- cbind(A, c(0, 1, 4))) #add column</code></pre>
+<pre><code>     [,1] [,2] [,3] [,4]
+[1,]    0    1    5    0
+[2,]    0    2    0    1
+[3,]    0    1    5    4</code></pre>
+</section></section>
+<section><section id="control-flow" class="titleslide slide level1"><h1>Control flow</h1></section><section id="for-loop" class="slide level2">
+<h1><code>for</code> loop</h1>
+<pre class="r"><code>for (i in 1:3) {
+    print(i)
+}</code></pre>
+<pre><code>[1] 1
+[1] 2
+[1] 3</code></pre>
+<pre class="r"><code>item &lt;- c(&quot;Apple&quot;, &quot;Orange&quot;, &quot;Tomato&quot;)
+for (i in item)
+    print(i)</code></pre>
+<pre><code>[1] &quot;Apple&quot;
+[1] &quot;Orange&quot;
+[1] &quot;Tomato&quot;</code></pre>
+</section><section id="while-loop" class="slide level2">
+<h1><code>while</code> loop</h1>
+<pre class="r"><code>i &lt;- 5
+while(i &lt; 10){      
+    print(i)
+    i &lt;- i + 1
+}</code></pre>
+<pre><code>[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9</code></pre>
+</section><section id="if-then-else" class="slide level2">
+<h1><code>if-then-else</code></h1>
+<pre class="r"><code>x &lt;- 8
+y &lt;- 7
+if (x &lt; y) {          
+    print(x)
+} else {
+      print(y)
+  }</code></pre>
+<pre><code>[1] 7</code></pre>
+</section><section id="ifelse" class="slide level2">
+<h1><code>ifelse()</code></h1>
+<pre class="r"><code>(z &lt;- ifelse(x &lt; y, x, y))</code></pre>
+<pre><code>[1] 7</code></pre>
+<ul>
+<li><code>ifelse</code> works with vectors</li>
+</ul>
+<pre class="r"><code>a &lt;- c(3, 7, 8)
+b &lt;- c(4, 6, 9)
+ifelse(a &lt; b, a, b)</code></pre>
+<pre><code>[1] 3 6 8</code></pre>
+</section></section>
+<section><section id="distributions" class="titleslide slide level1"><h1>Distributions</h1></section><section id="normal-distribution" class="slide level2">
+<h1>Normal distribution</h1>
+<pre class="r"><code># Value of a N(5,34) density function of at point x=2
+dnorm(x=2, mean = 5, sd = 7)     </code></pre>
+<pre><code>[1] 0.05199096</code></pre>
+<pre class="r"><code># Value of a N(0,1) distribution function at point x=2   
+pnorm(q=2, mean = 0, sd = 1)     </code></pre>
+<pre><code>[1] 0.9772499</code></pre>
+<pre class="r"><code># p-quantile of a N(0,1) distribution
+qnorm(p=0.25, mean = 0, sd = 1)  </code></pre>
+<pre><code>[1] -0.6744898</code></pre>
+<pre class="r"><code># Simulation of 50 N(0,1)-distributed random variables
+x &lt;- rnorm(n=50, mean = 0, sd = 1)  </code></pre>
+</section><section id="other-distributions" class="slide level2">
+<h1>Other distributions</h1>
+<pre class="r"><code>rexp(n = 5, rate = 1)   # exponential distribution</code></pre>
+<pre><code>[1] 0.97748037 0.99674564 0.19769754 1.81352544 0.03951795</code></pre>
+<pre class="r"><code>punif(1.5, 1, 2)      # Uniform distribution [1,2]</code></pre>
+<pre><code>[1] 0.5</code></pre>
+<p>See the <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/Distributions.html">distribution help page</a> and the <a href="http://cran.r-project.org/web/views/Distributions.html">Distribution task view</a> for all distributions available</p>
+</section></section>
+<section><section id="math-functions" class="titleslide slide level1"><h1>Math functions</h1></section><section id="math-functions-1" class="slide level2">
+<h1>Math functions</h1>
+<pre class="r"><code>x &lt;- abs(rnorm(50, 2, 2)) #abs: absolute value
+
+sqrt(x)    #square root
+exp(x)     #exponential function
+log(x)     #logarithm
+sin(x)     #sinus
+cos(x)     #cosinus
+sort(x)    #sort entries
+quantile(x,0.25)  #sample 25%-quantile
+
+mean(x)    #sample mean
+var(x)     #sample variance
+sd(x)      #sample standard deviation
+sqrt(var(x))
+median(x)  #sample median
+min(x)     #sample minimum
+max(x)     #sample maximum
+summary(x) #Overview of important sample parameters</code></pre>
+</section></section>
+<section><section id="user-defined-functions" class="titleslide slide level1"><h1>User defined functions</h1></section><section id="a-function-with-one-parameter" class="slide level2">
+<h1>A function with one parameter</h1>
+<pre class="r"><code>myFun &lt;- function(x) {
+    x^2 + 1
+}
+myFun(3)</code></pre>
+<pre><code>[1] 10</code></pre>
+</section><section id="a-function-with-more-parameters" class="slide level2">
+<h1>A function with more parameters</h1>
+<pre class="r"><code>complicated_function &lt;- function(x, y = 2, text = &quot;apple&quot;) {
+    length_text &lt;- nchar(text)
+    if (y &gt; 0) {
+        res &lt;- x + log(y) * length_text
+    } else {
+          res &lt;- x + log(abs(y)) * length_text
+      }
+
+    res
+}</code></pre>
+</section><section id="a-function-with-more-parameters-1" class="slide level2">
+<h1>A function with more parameters</h1>
+<pre class="r"><code>(a &lt;- complicated_function(x = 10))</code></pre>
+<pre><code>[1] 13.46574</code></pre>
+<pre class="r"><code>(b &lt;- complicated_function(10, -2, &quot;fffff&quot;))</code></pre>
+<pre><code>[1] 13.46574</code></pre>
+<ul>
+<li><a href="http://cran.r-project.org/doc/FAQ/R-FAQ.html#Why-doesn_0027t-R-think-these-numbers-are-equal_003f">Careful</a> with floating points</li>
+</ul>
+<pre class="r"><code>a &lt;- sqrt(2)
+a * a - 2</code></pre>
+<pre><code>[1] 4.440892e-16</code></pre>
+<pre class="r"><code>a * a == 2</code></pre>
+<pre><code>[1] FALSE</code></pre>
+</section></section>
+<section><section id="work-with-data" class="titleslide slide level1"><h1>Work with data</h1></section><section id="data-frames" class="slide level2">
+<h1>Data frames</h1>
+<pre class="r"><code>x &lt;- c(&quot;Franz&quot;, &quot;Anton&quot;, &quot;Heinrich&quot;)                   
+y &lt;- c(1.0, 1.7, 2.7)
+z &lt;- c(95, 85, 67)
+grades_list = data.frame(name=x, grade=y, points=z)                             #create Data Frame
+grades_list</code></pre>
+<pre><code>      name grade points
+1    Franz   1.0     95
+2    Anton   1.7     85
+3 Heinrich   2.7     67</code></pre>
+<pre class="r"><code># add a row
+(grades_list &lt;- rbind(grades_list,
+                     data.frame(name= &quot;Maria&quot;, grade = 3.7, points = 54)) )</code></pre>
+<pre><code>      name grade points
+1    Franz   1.0     95
+2    Anton   1.7     85
+3 Heinrich   2.7     67
+4    Maria   3.7     54</code></pre>
+</section><section id="data-frames-1" class="slide level2">
+<h1>Data frames</h1>
+<pre class="r"><code># create new gender vector
+gender &lt;- c(rep(&quot;m&quot;, 3), &quot;f&quot;)
+grades_list &lt;- cbind(grades_list, gender) #add column
+grades_list</code></pre>
+<pre><code>      name grade points gender
+1    Franz   1.0     95      m
+2    Anton   1.7     85      m
+3 Heinrich   2.7     67      m
+4    Maria   3.7     54      f</code></pre>
+</section><section id="data-frames-2" class="slide level2">
+<h1>Data frames</h1>
+<ul>
+<li>Column access</li>
+</ul>
+<pre class="r"><code>grades_list$points</code></pre>
+<pre><code>[1] 95 85 67 54</code></pre>
+<pre class="r"><code>grades_list[, &quot;points&quot;]</code></pre>
+<pre><code>[1] 95 85 67 54</code></pre>
+<pre class="r"><code>grades_list[, 3]</code></pre>
+<pre><code>[1] 95 85 67 54</code></pre>
+<pre class="r"><code>grades_list[[3]]</code></pre>
+<pre><code>[1] 95 85 67 54</code></pre>
+</section><section id="data-frames-3" class="slide level2">
+<h1>Data frames</h1>
+<pre class="r"><code># determine mean grade of all male individuals
+x &lt;- subset(grades_list, gender == &quot;m&quot;)$grade
+# equivalently
+y &lt;- grades_list[grades_list$gender == &quot;m&quot;, &quot;grade&quot;]
+mean(x) == mean(y)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+</section><section id="read-data" class="slide level2">
+<h1>Read data</h1>
+<ul>
+<li>The <code>read.table</code> function is used to read data into R in the form of a data frame, i.e., data with mixed modes</li>
+<li><code>read.table</code> expects each field (variable) to be separated by separators (by default, spaces, tabs, newlines or carriage returns)
+<ul>
+<li>The <code>sep</code> argument can be used to specify an alternative separator</li>
+</ul></li>
+<li>R provides convenience functions for reading comma- and tab-separated data</li>
+</ul>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>read.csv</code></td>
+<td style="text-align: left;">Separated by <code>,</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>read.csv2</code></td>
+<td style="text-align: left;">Separated by <code>;</code> decimal point <code>,</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>read.delim</code></td>
+<td style="text-align: left;">Separated by tabs</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>read.delim2</code></td>
+<td style="text-align: left;">Separated by tabs, decimal point <code>,</code></td>
+</tr>
+</tbody>
+</table>
+<p>These functions are wrappers for <code>read.table</code> with the sep argument set appropriately</p>
+</section><section id="read-data-1" class="slide level2">
+<h1>Read data</h1>
+<p>Useful options:</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>file</code></td>
+<td style="text-align: left;">File to be read</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>sep</code></td>
+<td style="text-align: left;">e.g., <code>&quot;\t&quot;=</code>, <code>&quot;,&quot;</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>dec</code></td>
+<td style="text-align: left;">Specify decimal point (default is <code>.</code>)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>header</code></td>
+<td style="text-align: left;"><code>TRUE</code> if the the first line are the column names (default to <code>TRUE</code> for <code>read.csv</code>…)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>col.names</code></td>
+<td style="text-align: left;">A vector of column names</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>stringsAsFactors</code></td>
+<td style="text-align: left;">Logical. If <code>FALSE</code>, prevent the automatic conversion of character strings into factors</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>na.strings</code></td>
+<td style="text-align: left;">By default, <code>NA</code>, <code>NaN</code>, <code>Inf</code> and <code>-Inf</code> are considered as missing values. Change this behaviour using <code>na.strings</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>skip</code> and <code>nrows</code></td>
+<td style="text-align: left;">Number of lines to skip and number of lines to read, respectively</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>fill</code></td>
+<td style="text-align: left;">If <code>TRUE</code>, observations with fewer variables are filled with <code>NA</code>s or blanks</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>colClasses</code></td>
+<td style="text-align: left;">Specify the modes of the columns to be read</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>fileEncoding</code></td>
+<td style="text-align: left;">Encoding of the file. Useful for non ASCII characters from other platforms</td>
+</tr>
+</tbody>
+</table>
+</section></section>
+<section><section id="graphics" class="titleslide slide level1"><h1>Graphics</h1></section><section id="a-simple-graphic" class="slide level2">
+<h1>A simple graphic</h1>
+<pre class="r"><code>x &lt;- rnorm(100)
+y &lt;- rnorm(100)
+plot(x, y, col = 1)
+abline(lm(x~y), lwd = 3, col = &quot;royalblue2&quot;)
+legend(&quot;topright&quot;, &quot;regression\nline&quot;, col = &quot;royalblue2&quot;,
+       lwd = 3, cex = 2)</code></pre>
+<p><img src="graphics/graphics-1.png" title="A plot" alt="A plot" width="400px" /></p>
+</section><section id="another-simple-graphic" class="slide level2">
+<h1>Another simple graphic</h1>
+<pre class="r"><code>hist(x)</code></pre>
+<p><img src="graphics/hist-1.png" title="An histogram" alt="An histogram" width="400px" /></p>
+</section></section>
+<section><section id="reproducible-research" class="titleslide slide level1"><h1>Reproducible research</h1></section><section id="literate-programming" class="slide level2">
+<h1>Literate programming</h1>
+<blockquote>
+<p>Literate programming is an approach to programming introduced by Donald Knuth (1970s) in which a program is given as an explanation of the program logic in a natural language, such as English, interspersed with snippets of macros and traditional source code, from which a compilable source code can be generated,</p>
+</blockquote>
+<p>i.e., writing documentation containing computer code</p>
+<ul>
+<li>For statistician it means being able to
+<ul>
+<li>combine programming code with report text (article, presentation) in a single self-documenting file</li>
+<li>document the code and its results, including interpretation of the results</li>
+<li>allow an analysis to be rerun and the report (article, presentation) to be re-typeset by running a single command</li>
+</ul></li>
+</ul>
+</section><section id="real-life-data" class="slide level2">
+<h1>Real life data</h1>
+<pre class="r"><code>library(fortunes)
+fortune(&quot;Tolstoy&quot;)</code></pre>
+<pre><code>
+Happy families are all alike; every unhappy family is unhappy in its own
+way.
+Leo Tolstoy
+
+and every messy data is messy in its own way - it&#39;s easy to define the
+characteristics of a clean dataset (rows are observations, columns are
+variables, columns contain values of consistent types). If you start to
+look at real life data you&#39;ll see every way you can imagine data being
+messy (and many that you can&#39;t)!
+   -- Hadley Wickham (answering &#39;in what way messy data sets are messy&#39;)
+      R-help (January 2008)</code></pre>
+</section><section id="real-life-data-1" class="slide level2">
+<h1>Real life data</h1>
+<figure>
+<img src="graphics/real_life_data2.jpeg" />
+</figure>
+</section><section id="real-life-data-2" class="slide level2">
+<h1>Real life data</h1>
+<p><em>The problems</em></p>
+<ul>
+<li>Bad structure</li>
+<li>Non ascii characters (e.g., Umlaut)</li>
+<li>Variable names with spaces; on several lines, …</li>
+<li>Colour coding</li>
+<li>No consistent definition of missing values</li>
+<li>Free text</li>
+<li>(Wrong input, e.g., individuals who die twice)</li>
+<li>…</li>
+</ul>
+<p>Often data need to be transformed/reshaped for fitting a particular model</p>
+</section><section id="the-big-advantage-of-literate-programming" class="slide level2">
+<h1>The big advantage of literate programming</h1>
+<p>Changes are <strong>a lot</strong> easier</p>
+<ul>
+<li>Data analysis is done by the doctors messed up with Z. They are sending you a new data set</li>
+<li>Z is included in a lot of regression models</li>
+<li>You did the data transformation in Excel → no trace of it</li>
+<li>You copy-pasted the results of the models from the R/SAS console in a Word document</li>
+<li>It’s Friday 5pm, the results <strong>have</strong> to be available on Monday morning</li>
+</ul>
+<p>⇒ Have a nice weekend</p>
+</section><section id="literate-programming-in-r" class="slide level2">
+<h1>Literate programming in R</h1>
+<p>2 main tools</p>
+<ul>
+<li><strong>Sweave</strong> (2002): a tool that allows to embed the R code for complete data analyses in latex documents. The purpose is to create dynamic reports, which can be updated automatically if data or analysis change.
+<ul>
+<li><strong>Sweave</strong> is part of every R installation</li>
+</ul></li>
+<li><strong>knitr</strong>: “The knitr package was designed to be a transparent engine for dynamic report generation with R, solve some long-standing problems in Sweave, and combine features in other add-on packages into one package.”
+<ul>
+<li>e.g., other formats (html, markdown)</li>
+</ul></li>
+</ul>
+<p>Both are very well integrated with the Rstudio editor</p>
+</section><section id="knitr" class="slide level2">
+<h1><strong>knitr</strong></h1>
+<figure>
+<img src="graphics/knitr_workflow.png" />
+</figure>
+</section><section id="knitr-with-a-latex" class="slide level2">
+<h1><strong>knitr with a LaTeX</strong></h1>
+<pre class="latex"><code>\documentclass{article}
+
+\begin{document}
+
+Some R Code:
+&lt;​&lt;&gt;&gt;=
+x &lt;- rnorm(1000)
+@
+
+Let&#39;s display an histogram of {\tt x}
+&lt;​&lt;fig_path = &quot;graphics&quot;, caption = &quot;An histogram of x&quot;, out.width = &quot;.5\\linewidth&quot;, fig.align = &quot;center&quot;&gt;&gt;=
+hist(x)
+@
+
+\end{document}</code></pre>
+</section><section id="knitr-with-latex" class="slide level2">
+<h1><strong>knitr</strong> with Latex</h1>
+<figure>
+<img src="illustration/knitr_pdf.jpeg" />
+</figure>
+</section><section id="knitr-with-markdown" class="slide level2">
+<h1><strong>knitr</strong> with markdown</h1>
+<pre class="markdown"><code>
+## A simple graphic
+
+With a list before
+- item 1
+- item 2
+
+And some R code
+
+`​``{r graphics2, out.width = &quot;100px&quot;, fig.width = 10, fig.height = 8}
+x &lt;- rnorm(100)
+y &lt;- rnorm(100)
+plot(x, y, col = 1)
+abline(lm(x~y), lwd = 3, col = &quot;royalblue2&quot;)
+legend(&quot;topright&quot;, &quot;regression\nline&quot;, col = &quot;royalblue2&quot;,
+       lwd = 3, cex = 2)</code></pre>
+<pre class="markdown"><code>and an equation
+$$Y = \beta_0 + \sum_{i = 1}^p \beta_i Z_i$$</code></pre>
+</section><section id="a-simple-graphic-1" class="slide level2">
+<h1>A simple graphic</h1>
+<p>With a list</p>
+<ul>
+<li>item 1</li>
+<li>item 2</li>
+</ul>
+<p>And some R code</p>
+<pre class="r"><code>x &lt;- rnorm(100)
+y &lt;- rnorm(100)
+plot(x, y, col = 1)
+abline(lm(x~y), lwd = 3, col = &quot;royalblue2&quot;)
+legend(&quot;topright&quot;, &quot;regression\nline&quot;, col = &quot;royalblue2&quot;,
+       lwd = 3, cex = 2)</code></pre>
+<p><img src="graphics/graphics2-1.png" title="plot of chunk graphics2" alt="plot of chunk graphics2" width="100px" /></p>
+<p>and an equation <span class="math display">\[Y = \beta_0 + \sum_{i = 1}^p \beta_i Z_i\]</span></p>
+</section><section id="knitr-and-rstudio" class="slide level2">
+<h1>knitr and Rstudio</h1>
+<figure>
+<img src="graphics/rstudio_knitr.png" />
+</figure>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

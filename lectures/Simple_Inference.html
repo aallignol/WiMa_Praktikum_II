@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Simple inference, parametric and non-parametric tests</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Simple inference, parametric and non-parametric tests</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="illustrations" class="titleslide slide level1"><h1>Illustrations</h1></section><section id="usmelanoma-malignant-melanoma-in-the-usa" class="slide level2">
+<h1>USmelanoma: Malignant Melanoma in the USA</h1>
+<p>Fisher and Belle (1993) report mortality rates due to malignant melanoma of the skin for white males during the period 1950–1969, for each state on the US mainland. The include the number of deaths due to malignant melanoma in the corresponding state, the longitude and latitude of the geographic centre of each state, and a binary variable indicating contiguity to an ocean, that is, if the state borders one of the oceans.</p>
+<p>Questions of interest about these data include:</p>
+<ul>
+<li>how do the mortality rates compare for ocean and non-ocean states?</li>
+<li>how are mortality rates affected by latitude and longitude?</li>
+</ul>
+</section><section id="usmelanoma-malignant-melanoma-in-the-usa-1" class="slide level2">
+<h1>USmelanoma: Malignant Melanoma in the USA</h1>
+<pre class="r"><code>USmelanoma$Mortality_150 &lt;- factor(as.numeric(USmelanoma$mortality &gt; 150), labels = c(&quot;Mortality &lt;= 150&quot;, &quot;Mortality &gt; 150&quot;))
+
+head(USmelanoma, n = 4)</code></pre>
+<pre><code>           mortality latitude longitude ocean   Mortality_150
+Alabama          219     33.0      87.0   yes Mortality &gt; 150
+Arizona          160     34.5     112.0    no Mortality &gt; 150
+Arkansas         170     35.0      92.5    no Mortality &gt; 150
+California       182     37.5     119.5   yes Mortality &gt; 150</code></pre>
+<p>In SAS</p>
+<pre><code>proc import datafile= &#39;/folders/myshortcuts/WiMa_Praktikum/lectures/illustration/USmelanoma.csv&#39;
+    out = USmelanoma
+    dbms = csv
+    replace;
+run;
+
+data usmelanoma;
+    set usmelanoma;
+    label Mortality=&quot;Mortality rate due to melanoma&quot;;
+    mortality_150 = mortality &lt;= 150;
+    ocean_bin = ocean eq &#39;no&#39;;
+    run;
+    
+proc format;
+    value mort 0=&quot;Mortality rate &gt; than 150&quot; 1=&quot;Mortality rate &lt;= than 150&quot;;
+    value oce 0=&quot;Contiguous to an ocean&quot; 1=&quot;non-contiguous to an ocean&quot;;
+    run;</code></pre>
+</section><section id="old-faithful-geyser-waiting-times-between-two-eruptions" class="slide level2">
+<h1>Old Faithful geyser waiting times between two eruptions</h1>
+<p>Old Faithful is the most popular attraction of Yellowstone National Park, although it is not the largest or grandest geyser in the park. Old Faithful can vary in height from 100–180 feet with an average near 130–140 feet. Eruptions normally last between <span class="math inline">\(1.5\)</span> to <span class="math inline">\(5\)</span> minutes. From August 1 to August 15, 1985, Old Faithful was observed and the waiting times between successive eruptions noted. There were <span class="math inline">\(300\)</span> eruptions observed, so <span class="math inline">\(299\)</span> waiting times were (in minutes) recorded.</p>
+<pre class="r"><code>head(faithful)</code></pre>
+<pre><code>  eruptions waiting
+1     3.600      79
+2     1.800      54
+3     3.333      74
+4     2.283      62
+5     4.533      85
+6     2.883      55</code></pre>
+<ul>
+<li><code>eruptions</code>: Eruption time in mins</li>
+<li><code>waiting</code>: Waiting time to next eruption (in mins)</li>
+</ul>
+</section><section id="survival-of-titanic-passenger" class="slide level2">
+<h1>Survival of Titanic passenger</h1>
+<p>This data set provides information on the fate of passengers on the fatal maiden voyage of the ocean liner ‘Titanic’, summarised according to economic status (class), sex, age and survival.</p>
+<ul>
+<li><code>Class</code>: 1st, 2nd, 3rd, Crew</li>
+<li><code>Sex</code>: Male, Female</li>
+<li><code>Age</code>: Child, Adult</li>
+<li><code>Survived</code>: No, Yes</li>
+</ul>
+</section><section id="survival-of-titanic-passenger-1" class="slide level2">
+<h1>Survival of Titanic passenger</h1>
+<pre class="r"><code>Titanic</code></pre>
+<pre><code>, , Age = Child, Survived = No
+
+      Sex
+Class  Male Female
+  1st     0      0
+  2nd     0      0
+  3rd    35     17
+  Crew    0      0
+
+, , Age = Adult, Survived = No
+
+      Sex
+Class  Male Female
+  1st   118      4
+  2nd   154     13
+  3rd   387     89
+  Crew  670      3
+
+, , Age = Child, Survived = Yes
+
+      Sex
+Class  Male Female
+  1st     5      1
+  2nd    11     13
+  3rd    13     14
+  Crew    0      0
+
+, , Age = Adult, Survived = Yes
+
+      Sex
+Class  Male Female
+  1st    57    140
+  2nd    14     80
+  3rd    75     76
+  Crew  192     20</code></pre>
+</section></section>
+<section><section id="one-continuous-variable" class="titleslide slide level1"><h1>One continuous variable</h1></section><section id="summary-statistics" class="slide level2">
+<h1>Summary statistics</h1>
+<p><span class="math inline">\(\mathbf{X} = (X_1, X_2, \dots, X_n)\)</span> i.i.d random variable</p>
+<ul>
+<li>sample mean: <span class="math inline">\(\hat{\mu} = \frac{1}{n}\sum_{i = 1}^n X_i\)</span></li>
+<li>sample variance: <span class="math inline">\(\hat{\sigma}^2 = \frac{1}{n - 1}\sum_{i = 1}^n (X_i - \hat{\mu})^2\)</span></li>
+<li>Standard deviation: <span class="math inline">\(\sqrt{\hat{\sigma}^2}\)</span></li>
+<li>Median, quantiles</li>
+<li>Minimum, Maximum</li>
+</ul>
+<p>In R:</p>
+<pre class="r"><code>summary(USmelanoma$mortality)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   86.0   128.0   147.0   152.9   178.0   229.0 </code></pre>
+<p>In SAS</p>
+<pre><code>proc means data = usmelanoma mean std clm median q1 q3 min max maxdec=2;
+    var mortality;
+run;</code></pre>
+</section><section id="histograms" class="slide level2">
+<h1>Histograms</h1>
+<p>Histograms are used for counting and displaying the distribution of a variable. Histograms can often be misleading for displaying distributions because of their dependence on the number of classes chosen.</p>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = mortality)) + geom_histogram()</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<figure>
+<img src="graphics/hist_mortality-1.svg" />
+</figure>
+</section><section id="histograms-1" class="slide level2">
+<h1>Histograms</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = mortality)) + geom_histogram(binwidth = 60)</code></pre>
+<figure>
+<img src="graphics/hist_mortality_bin-1.svg" />
+</figure>
+</section><section id="boxplot" class="slide level2">
+<h1>Boxplot</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = 1, y = mortality)) + geom_boxplot()</code></pre>
+<p><img src="graphics/box_mortality-1.svg" width="400px" style="display: block; margin: auto;" /></p>
+<ul>
+<li>Middle line is the <strong>median</strong></li>
+<li>The lower and upper “hinges” correspond to the <strong>first</strong> and <strong>third quartiles</strong> (the 25th and 75th percentiles)</li>
+<li>The lower/upper whiskers extends from the hinges to the lowest/highest value within <strong>1.5 * IQR</strong> (interquartile range) of the hinge. Data beyond the end of the whiskers are <strong>outliers</strong> and plotted as <strong>points</strong></li>
+</ul>
+</section><section id="density-estimation" class="slide level2">
+<h1>Density estimation</h1>
+<p>The goal of density estimation is to approximate the probability density function of a random variable (univariate or multivariate) given a sample of observations of the variable.</p>
+<p>If we are willing to assume a particular form for the variable distribution, for example, Gaussian, density estimation would be reduced to estimating the parameters of the distribution. More commonly, however, we wish to allow the data to speak for themselves and so one of a variety of non-parametric estimation procedures that are now available might be used.</p>
+<p>One of the most popular class of procedures is the kernel density estimators.</p>
+</section><section id="kernel-density-estimation" class="slide level2">
+<h1>Kernel density estimation</h1>
+<p>From the definition of a probability density, if the r.v <span class="math inline">\(X\)</span> has a density <span class="math inline">\(f\)</span>,</p>
+<p><span class="math display">\[f(x) = \lim_{h \rightarrow 0} \frac{1}{2h} P(x - h &lt; X &lt; x + h).\]</span></p>
+<p>For any given <span class="math inline">\(h\)</span> a naïve estimator is</p>
+<p><span class="math display">\[\hat{f}(x) = \frac{1}{2hn} \sum_{i = 1}^n I(x_i \in (x - h, x + h)),\]</span></p>
+<p>i.e., the number of <span class="math inline">\(x_1, \dots, x_n\)</span> falling in the interval <span class="math inline">\((x - h, x +h)\)</span> divided by <span class="math inline">\(2hn\)</span>.</p>
+</section><section id="kernel-density-estimation-1" class="slide level2">
+<h1>Kernel density estimation</h1>
+<p><span class="math display">\[\hat{f}(x) = \frac{1}{hn} \sum_{i = 1}^n K\left(\frac{x - x_i}{h}\right)\]</span></p>
+<p>where <span class="math inline">\(K\)</span> is known as the <strong>kernel function</strong> and <span class="math inline">\(h\)</span> as the <strong>bandwidth</strong> or <strong>smoothing parameter</strong>.</p>
+<p>The kernel function must satisfy the condition</p>
+<p><span class="math display">\[\int_{-\infty}^\infty K(x)dx = 1.\]</span></p>
+<p>Usually, but not always, the kernel function will be a symmetric density function for example, the normal.</p>
+</section><section id="kernel-density-estimation-2" class="slide level2">
+<h1>Kernel density estimation</h1>
+<p>3 types of Kernel functions</p>
+<ul>
+<li>Rectangular</li>
+<li>Triangular</li>
+<li>Gaussian</li>
+</ul>
+<figure>
+<img src="graphics/kernel-1.svg" />
+</figure>
+<p>The kernel estimator <span class="math inline">\(\hat{f}\)</span> is a sum of ‘bumps’ placed at the observations. The kernel function determines the shape of the bumps while the window width <span class="math inline">\(h\)</span> determines their width.</p>
+</section><section id="kernel-density-estimation-3" class="slide level2">
+<h1>Kernel density estimation</h1>
+<p>The <code>adjust</code> argument controls the bandwidth</p>
+<pre class="r"><code>ggplot(faithful, aes(waiting)) +
+  geom_line(stat = &quot;density&quot;, adjust = .25, col = &quot;red&quot;) +
+  geom_line(stat = &quot;density&quot;, adjust = 1, col = &quot;black&quot;) +
+  geom_line(stat = &quot;density&quot;, adjust = 5, col = &quot;blue&quot;)</code></pre>
+<figure>
+<img src="graphics/densities-1.svg" />
+</figure>
+</section><section id="kernel-density-estimation-4" class="slide level2">
+<h1>Kernel density estimation</h1>
+<p>The <code>kernel</code> argument specifies which kernel to use</p>
+<pre class="r"><code>ggplot(faithful, aes(waiting)) +
+  geom_line(stat = &quot;density&quot;, adjust = 1, col = &quot;black&quot;, kernel = &quot;gaussian&quot;) +
+  geom_line(stat = &quot;density&quot;, adjust = 1, col = &quot;red&quot;, kernel = &quot;rectangular&quot;) +
+  geom_line(stat = &quot;density&quot;, adjust = 1, col = &quot;blue&quot;, kernel = &quot;triangular&quot;) </code></pre>
+<figure>
+<img src="graphics/densities_2-1.svg" />
+</figure>
+</section><section id="display-the-density" class="slide level2">
+<h1>Display the density</h1>
+<pre class="r"><code>ggplot(faithful, aes(x = waiting)) + geom_histogram()</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<figure>
+<img src="graphics/density_geyser-1.svg" />
+</figure>
+</section><section id="display-the-density-1" class="slide level2">
+<h1>Display the density</h1>
+<pre class="r"><code>ggplot(faithful, aes(waiting)) + 
+  geom_histogram(aes(y = ..density..), colour=&quot;black&quot;, fill=&quot;white&quot;) +
+  geom_density(fill = &quot;red&quot;, alpha = .2)</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<figure>
+<img src="graphics/density_geyser_2-1.svg" />
+</figure>
+</section><section id="display-the-density-2" class="slide level2">
+<h1>Display the density</h1>
+<p><strong>Violin plot</strong>: a boxplot with a rotated kernel density plot on each side</p>
+<pre class="r"><code>ggplot(faithful, aes(1, waiting)) +
+  geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))</code></pre>
+<figure>
+<img src="graphics/violin_plot-1.svg" />
+</figure>
+</section></section>
+<section><section id="one-binary-variable" class="titleslide slide level1"><h1>One binary variable</h1></section><section id="possible-display-bars" class="slide level2">
+<h1>Possible display — Bars</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(ocean)) + geom_bar()</code></pre>
+<figure>
+<img src="graphics/mel_bin_1-1.svg" />
+</figure>
+</section><section id="possible-display-dotchart" class="slide level2">
+<h1>Possible display — Dotchart</h1>
+<pre class="r"><code>df &lt;- USmelanoma %&gt;% group_by(ocean) %&gt;% summarise(n = n())
+ggplot(df, aes(ocean, n)) + geom_point(size = 5) + coord_flip()</code></pre>
+<figure>
+<img src="graphics/mel_bin_2-1.svg" />
+</figure>
+</section><section id="inference-for-a-single-proportion" class="slide level2">
+<h1>Inference for a single proportion</h1>
+<p>A sample proportion can be described as a sample mean, e.g, if ‘successes’ are coded as 1,then the sample proportion is the mean of these numerical outcomes</p>
+<p><span class="math display">\[\hat{p} = \frac{\text{Number of successes}}{n}\]</span></p>
+<p>with n the total number of observation.</p>
+<p>If <span class="math inline">\(np \geq 10\)</span> and <span class="math inline">\(n(1-p) \geq 10\)</span> then the standard error (SE) of <span class="math inline">\(\hat{p}\)</span> can be computed as</p>
+<p><span class="math display">\[\sqrt{\frac{p(1-p)}{n}}\]</span></p>
+</section><section id="inference-for-a-single-proportion-1" class="slide level2">
+<h1>Inference for a single proportion</h1>
+<p>In SAS:</p>
+<pre><code>proc freq data = usmelanoma;
+    format mortality_150 mort.;
+    tables mortality_150 / nocum binomial alpha = 0.05;
+run;</code></pre>
+</section></section>
+<section><section id="one-binary-variable-vs-one-continuous-variable" class="titleslide slide level1"><h1>One binary variable VS one continuous variable</h1></section><section id="mortality-rates-for-ocean-and-non-ocean-states-compared" class="slide level2">
+<h1>Mortality rates for ocean and non-ocean states compared</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = ocean, y = mortality)) + geom_boxplot() +
+  xlab(&quot;Contiguity to an ocean&quot;) +
+  ylab(&quot;Mortality rates&quot;)</code></pre>
+<figure>
+<img src="graphics/mortality_boxplot_vs-1.svg" />
+</figure>
+</section><section id="mortality-rates-for-ocean-and-non-ocean-states-compared-1" class="slide level2">
+<h1>Mortality rates for ocean and non-ocean states compared</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = mortality, fill = ocean)) + geom_histogram()</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<figure>
+<img src="graphics/mortality_hist_vs-1.svg" />
+</figure>
+</section><section id="mortality-rates-for-ocean-and-non-ocean-states-compared-2" class="slide level2">
+<h1>Mortality rates for ocean and non-ocean states compared</h1>
+<pre class="r"><code>ci &lt;- function(x) {
+    n &lt;- length(x)
+    se &lt;- sd(x)/sqrt(n)
+    se * qt(.975, n - 1)
+}
+    
+df &lt;- USmelanoma %&gt;% group_by(ocean) %&gt;% summarise(mean = mean(mortality),
+                                                   sd = sd(mortality),
+                                                   ciMult = ci(mortality))                                                 </code></pre>
+<pre class="r"><code>ggplot(df, aes(x = ocean, y = mean, fill = ocean)) + geom_bar(stat = &quot;identity&quot;, width = .5) +
+  geom_errorbar(aes(ymin = mean - ciMult, ymax = mean + ciMult), width = .2)</code></pre>
+<p><img src="graphics/mortality_barplot_vs-1.svg" width="400px" style="display: block; margin: auto;" /></p>
+</section><section id="mortality-rates-for-ocean-and-non-ocean-states-compared-3" class="slide level2">
+<h1>Mortality rates for ocean and non-ocean states compared</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = mortality)) + geom_histogram() +
+  facet_grid(.~ ocean)</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<figure>
+<img src="graphics/mortality_hist_facet-1.svg" />
+</figure>
+</section><section id="comparing-normal-populations" class="slide level2">
+<h1>Comparing Normal Populations</h1>
+<p>The independent samples <span class="math inline">\(t\)</span>-test is used to test the null hypothesis that the means of two populations are the same: <span class="math inline">\(H_0: \mu_1 = \mu_2\)</span>.</p>
+<p>The variable to be compared is assumed to have a normal distribution with the same variance in both populations.</p>
+<p>Test statistic: <span class="math display">\[t = \frac{\bar{x}_1 - \bar{x}_2}{s \sqrt{1 / n_1 + 1 / n_2}} \sim t_{n_1 + n_2 - 2}\]</span></p>
+</section><section id="comparing-normal-populations-1" class="slide level2">
+<h1>Comparing Normal Populations</h1>
+<p><strong>In R</strong></p>
+<pre class="r"><code>t.test(mortality ~ ocean, data = USmelanoma, var.equal= TRUE)</code></pre>
+<pre><code>
+    Two Sample t-test
+
+data:  mortality by ocean
+t = -3.684, df = 47, p-value = 0.0005924
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -48.68041 -14.29265
+sample estimates:
+ mean in group no mean in group yes 
+         138.7407          170.2273 </code></pre>
+</section><section id="comparing-normal-populations-2" class="slide level2">
+<h1>Comparing Normal Populations</h1>
+<p><strong>Unequal Variances:</strong></p>
+<p>If the two populations are suspected of having different variances (boxes in boxplots differ significantly), a modified form of the <span class="math inline">\(t\)</span> statistic, known as the Welch test, may be used:</p>
+<p><span class="math display">\[t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{s_1^2 / n_1 + s_2^2 / n_2}} \sim t_\nu,\]</span></p>
+<p>where</p>
+<p><span class="math display">\[\nu = \left(\frac{c}{n_1 - 1} + \frac{(1 - c)^2}{n_2 - 1}\right)^{-1}\]</span></p>
+<p>and</p>
+<p><span class="math display">\[c = \frac{s_1^2/n_1}{s_1^2/n_1 + s_2^2/n_2}\]</span></p>
+</section><section id="comparing-normal-populations-unequal-variances" class="slide level2">
+<h1>Comparing Normal Populations — Unequal Variances</h1>
+<p><strong>In R</strong></p>
+<pre class="r"><code>t.test(mortality ~ ocean, data = USmelanoma, var.equal= FALSE)</code></pre>
+<pre><code>
+    Welch Two Sample t-test
+
+data:  mortality by ocean
+t = -3.5963, df = 39.539, p-value = 0.0008859
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -49.18811 -13.78495
+sample estimates:
+ mean in group no mean in group yes 
+         138.7407          170.2273 </code></pre>
+</section><section id="comparing-normal-populations-3" class="slide level2">
+<h1>Comparing Normal Populations</h1>
+<p><strong>In SAS</strong></p>
+<pre><code>proc ttest data = usmelanoma;
+    format ocean_bin oce.;
+    class ocean_bin;
+    var mortality;
+run;    </code></pre>
+</section><section id="paired-samples" class="slide level2">
+<h1>Paired samples</h1>
+<p>A paired <span class="math inline">\(t\)</span>-test is used to compare the means of two populations when samples from the populations are available, in which each individual in one sample is paired with an individual in the other sample or each individual in the sample is observed twice.</p>
+<p>If the values of the variable of interest, <span class="math inline">\(x\)</span>, for the members of the <span class="math inline">\(i\)</span>th pair in groups <span class="math inline">\(1\)</span> and <span class="math inline">\(2\)</span> are denoted as <span class="math inline">\(x_{1i}\)</span> and <span class="math inline">\(x_{2i}\)</span>, then the differences <span class="math inline">\(d_i = x_{1i} - x_{2i}\)</span> are assumed to have a normal distribution with mean <span class="math inline">\(\mu\)</span> and the null hypothesis here is that the mean difference is zero, i.e., <span class="math inline">\(H_0: \mu = 0\)</span>.</p>
+<p>The paired <span class="math inline">\(t\)</span>-statistic is</p>
+<p><span class="math display">\[t = \frac{\bar{d}}{s / \sqrt{n}} \sim t_{n-1}\]</span></p>
+</section><section id="non-parametric-tests" class="slide level2">
+<h1>Non-parametric tests</h1>
+<p><strong>Wilcoxon-Mann-Whitney Test</strong></p>
+<p>For two independent groups, the Wilcoxon Mann-Whitney rank sum test applies the <span class="math inline">\(t\)</span>-statistic to the joint ranks of all measurements in both groups instead of the original measurements. The null hypothesis to be tested is that the two populations being compared have identical distributions.</p>
+<p><strong>Wilcoxon-Signed-Rank Test</strong></p>
+<p>The Wilcoxon signed-rank statistic is based on the ranks of the absolute differences <span class="math inline">\(|d_i|\)</span>. The statistic is defined as the sum of the ranks associated with positive difference <span class="math inline">\(d_i &gt; 0\)</span>.</p>
+<p>It should be noted that this test is only valid when the differences <span class="math inline">\(d_i\)</span> are symmetrically distributed.</p>
+</section><section id="non-parametric-tests-1" class="slide level2">
+<h1>Non-parametric tests</h1>
+<p>Use a nonparametric test when:</p>
+<ul>
+<li>The data are not normally distributed or are ordinal</li>
+<li>There is outliers: As the test compares sum of ranks, it is less likely than the t-test to spuriously indicate significance because of the presence of outliers</li>
+<li>Even if normality holds, the Wilcoxon test is not a lot less efficient</li>
+</ul>
+</section><section id="non-parametric-tests-2" class="slide level2">
+<h1>Non-parametric tests</h1>
+<p><strong>In R:</strong></p>
+<pre class="r"><code>wilcox.test(mortality ~ ocean, USmelanoma)</code></pre>
+<pre><code>Warning in wilcox.test.default(x = c(160L, 170L, 149L, 177L, 116L, 124L, :
+cannot compute exact p-value with ties</code></pre>
+<pre><code>
+    Wilcoxon rank sum test with continuity correction
+
+data:  mortality by ocean
+W = 134.5, p-value = 0.001125
+alternative hypothesis: true location shift is not equal to 0</code></pre>
+<p><strong>In SAS</strong></p>
+<pre><code>proc npar1way data = usmelanoma;
+    format ocean_bin oce.;
+    class ocean_bin;
+    var mortality;
+run;
+
+* Only a wilcoxon test;
+proc npar1way wilcoxon plots=none data = usmelanoma;
+    format ocean_bin oce.;
+    class ocean_bin;
+    var mortality;
+run;</code></pre>
+</section></section>
+<section><section id="two-binary-variables" class="titleslide slide level1"><h1>Two binary variables</h1></section><section id="survival-of-titanic-passenger-2" class="slide level2">
+<h1>Survival of Titanic passenger</h1>
+<pre class="r"><code>dt &lt;- data.table(Titanic)
+survived_gender &lt;- dt[, list(n = sum(N)), by = list(Sex, Survived)]
+survived_gender[, N := sum(n), by = Sex]
+survived_gender[, prop := n/N]
+survived_gender</code></pre>
+<pre><code>      Sex Survived    n    N      prop
+1:   Male       No 1364 1731 0.7879838
+2: Female       No  126  470 0.2680851
+3:   Male      Yes  367 1731 0.2120162
+4: Female      Yes  344  470 0.7319149</code></pre>
+</section><section id="survival-of-titanic-passenger-3" class="slide level2">
+<h1>Survival of Titanic passenger</h1>
+<pre class="r"><code>ggplot(survived_gender, aes(Sex, prop, fill = Survived)) + geom_bar(stat = &quot;identity&quot;)</code></pre>
+<figure>
+<img src="graphics/bar_titanic_1-1.svg" />
+</figure>
+</section><section id="survival-of-titanic-passenger-4" class="slide level2">
+<h1>Survival of Titanic passenger</h1>
+<pre class="r"><code>ggplot(survived_gender, aes(Sex, prop, fill = Survived)) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;)</code></pre>
+<figure>
+<img src="graphics/bar_titanic_2-1.svg" />
+</figure>
+</section><section id="survival-of-titanic-passenger-5" class="slide level2">
+<h1>Survival of Titanic passenger</h1>
+<pre class="r"><code>ggplot(survived_gender, aes(prop, Sex, colour = Survived)) +
+  geom_point(size = 6)</code></pre>
+<figure>
+<img src="graphics/dotchart_titanic_2-1.svg" />
+</figure>
+</section><section id="contingency-tables" class="slide level2">
+<h1>Contingency tables</h1>
+<ul>
+<li><p>In R: see <code>table</code></p></li>
+<li><p>In SAS:</p></li>
+</ul>
+<pre><code>proc freq data = usmelanoma;
+    format mortality_150 mort. ocean_bin oce.;
+    tables ocean_bin * mortality_150;
+run;</code></pre>
+</section><section id="test-of-independence" class="slide level2">
+<h1>Test of independence</h1>
+<p><strong><span class="math inline">\(\chi^2\)</span>-Test:</strong></p>
+<p>Under the null hypothesis of independence of the row variable <span class="math inline">\(x\)</span> and the column variable <span class="math inline">\(y\)</span>, estimated expected values <span class="math inline">\(E_{jk}\)</span> for cell <span class="math inline">\((j, k)\)</span> can be computed from the corresponding margin totals <span class="math inline">\(E_{jk} = n_{j\cdot} n_{\cdot k} / n\)</span>. The test statistic is</p>
+<p><span class="math display">\[X^2 = \sum_{j = 1}^r \sum_{k = 1}^c \frac{(n_{jk} - E_{jk})^2}{E_{jk}} \sim \chi^2_{(r-1)(c-1)}\]</span></p>
+<p>with <span class="math inline">\(rc\)</span> the number of cells</p>
+<p><em>Assumptions:</em></p>
+<ul>
+<li>A sufficiently large sample size is assumed</li>
+<li>Adequate expected cell counts (5 or more)</li>
+</ul>
+</section><section id="test-of-independence-1" class="slide level2">
+<h1>Test of independence</h1>
+<p><strong><span class="math inline">\(\chi^2\)</span>-Test:</strong></p>
+<ul>
+<li>In R:</li>
+</ul>
+<pre class="r"><code>with(USmelanoma, chisq.test(table(Mortality_150, ocean)))</code></pre>
+<pre><code>
+    Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+
+data:  table(Mortality_150, ocean)
+X-squared = 8.8647, df = 1, p-value = 0.002907</code></pre>
+<ul>
+<li>In SAS:</li>
+</ul>
+<pre><code>proc freq data = usmelanoma;
+    format mortality_150 mort. ocean_bin oce.;
+    tables ocean_bin * mortality_150 / chisq;
+run;</code></pre>
+</section><section id="test-of-independence-2" class="slide level2">
+<h1>Test of independence</h1>
+<p><strong>Fisher’s exact test</strong></p>
+<p>The Fisher’s exact test calculates the <em>exact probability</em> of the table of observed cell frequencies given the following assumptions:</p>
+<ul>
+<li>The null hypothesis of independence is true</li>
+<li>The marginal totals of the observed table are fixed</li>
+</ul>
+<p>If margins of a table are fixed, the exact probability of a table with cells <span class="math inline">\(a, b, c, d\)</span> and marginal totals <span class="math inline">\((a+b), (c+d), (a+c), (b+d)\)</span> is</p>
+<p><span class="math display">\[\frac{(a + b)! \times (c+d)! \times (a+c)! \times (b+d)!}{n!\times a! \times b! \times c! \times d!}\]</span></p>
+<p>Then compute all possible tables with the given marginals. The p-value for the Fisher’s exact test is calculated by summing all probabilities less than or equal to the probability of the observed table</p>
+</section><section id="test-of-independence-3" class="slide level2">
+<h1>Test of independence</h1>
+<p><strong>Fisher’s exact test</strong></p>
+<pre class="r"><code>with(USmelanoma, fisher.test(table(Mortality_150, ocean)))</code></pre>
+<pre><code>
+    Fisher&#39;s Exact Test for Count Data
+
+data:  table(Mortality_150, ocean)
+p-value = 0.001583
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+  1.831364 33.265732
+sample estimates:
+odds ratio 
+  7.254566 </code></pre>
+<ul>
+<li>In SAS:</li>
+</ul>
+<pre><code>proc freq data = usmelanoma;
+    format mortality_150 mort. ocean_bin oce.;
+    tables ocean_bin * mortality_150 / chisq;
+run;</code></pre>
+</section><section id="odds-ratio-and-relative-risk" class="slide level2">
+<h1>Odds-ratio and relative risk</h1>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Diseased</th>
+<th>Non-diseased</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Exposed</td>
+<td>a</td>
+<td>b</td>
+<td>a+b</td>
+</tr>
+<tr class="even">
+<td>Non-exposed</td>
+<td>c</td>
+<td>d</td>
+<td>c+d</td>
+</tr>
+<tr class="odd">
+<td>Total</td>
+<td>a+c</td>
+<td>b+d</td>
+<td>a+b+c+d</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Relative risk:</strong></p>
+<p>The is the ratio of the probability of an event occurring</p>
+<p><span class="math display">\[\text{RR} = \frac{a/(a+b)}{c/(c+d)} = \frac{\pi_1}{\pi_2}\]</span></p>
+<p>Exposed would be <span class="math inline">\(\text{RR}\)</span> times as likely to develop the disease. Note that the <span class="math inline">\(\text{RR}\)</span> is not suitable for case-control studies</p>
+<p><strong>Odds ratio:</strong></p>
+<p>The odds ratio is computed as</p>
+<p><span class="math display">\[\text{OR} = \frac{\pi_1/(1-\pi_1)}{\pi_2/(1-\pi_2)} = \frac{a/c}{b/d} = \frac{ad}{cb}\]</span></p>
+<ul>
+<li>Testing <span class="math inline">\(\text{OR} = 1\)</span> is equivalent to an independence test</li>
+<li>The odds ratio does not change when the orientation of the table reverses</li>
+<li><span class="math inline">\(\text{se}(\log \text{OR}) = \sqrt{1/a + 1/b + 1/c + 1/d}\)</span></li>
+</ul>
+</section><section id="odds-ratio-and-relative-risk-1" class="slide level2">
+<h1>Odds-ratio and relative risk</h1>
+<ul>
+<li>In R: Compute per hand or</li>
+</ul>
+<pre class="r"><code>ft &lt;- with(USmelanoma, fisher.test(table(Mortality_150, ocean)))
+(or &lt;- ft$estimate)</code></pre>
+<pre><code>odds ratio 
+  7.254566 </code></pre>
+<pre class="r"><code>## Note that this OR is estimated via maximum likelood</code></pre>
+<ul>
+<li>In SAS</li>
+</ul>
+<pre><code>proc freq data = usmelanoma;
+    format mortality_150 mort. ocean_bin oce.;
+    tables ocean_bin*mortality_150 / relrisk;
+run;</code></pre>
+</section></section>
+<section><section id="continuous-variables" class="titleslide slide level1"><h1>2 Continuous variables</h1></section><section id="scatterplot" class="slide level2">
+<h1>Scatterplot</h1>
+<p>Mortality rate against latitude and longitude in the <code>USmelanoma</code> data</p>
+<pre class="r"><code>p &lt;- ggplot(USmelanoma, aes(x = longitude, y = mortality)) + geom_point(size = 2)
+q &lt;- ggplot(USmelanoma, aes(x = latitude, y = mortality)) + geom_point(size = 2)
+
+grid.arrange(p, q, ncol = 2)</code></pre>
+<figure>
+<img src="graphics/scat_usmelanoma-1.svg" />
+</figure>
+</section><section id="testing-correlation" class="slide level2">
+<h1>Testing Correlation</h1>
+<p><strong>Pearson’s correlation coefficient:</strong></p>
+<p><span class="math display">\[\rho = \text{corr}(X,Y) = \frac{\text{cov}(X,Y)}{\sigma_X\sigma_Y}\]</span></p>
+<p>The Pearson correlation is +1 in the case of a perfect direct (increasing) linear relationship (correlation), -1 in the case of a perfect decreasing (inverse) linear relationship. Note that this coefficient only detects <strong>linear relationships</strong>.</p>
+<ul>
+<li>in R</li>
+</ul>
+<pre class="r"><code>cor.test(~ mortality + latitude, USmelanoma)</code></pre>
+<pre><code>
+    Pearson&#39;s product-moment correlation
+
+data:  mortality and latitude
+t = -9.9898, df = 47, p-value = 3.309e-13
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ -0.8976036 -0.7073128
+sample estimates:
+       cor 
+-0.8245178 </code></pre>
+<pre class="r"><code>cor.test(~ mortality + longitude, USmelanoma)$p.value</code></pre>
+<pre><code>[1] 0.3162</code></pre>
+<ul>
+<li>in SAS</li>
+</ul>
+</section><section id="testing-correlation-1" class="slide level2">
+<h1>Testing Correlation</h1>
+<p><strong>Spearman’s rho:</strong></p>
+<p>The Spearman correlation coefficient is defined as the Pearson correlation coefficient between the ranked variables</p>
+<p><span class="math display">\[\rho_{X,Y} = \frac{\text{cov}(\text{rg}_X,\text{rg}_Y)}{\sigma_{\text{rg}_X}\sigma_{\text{rg}_Y}}\]</span></p>
+<ul>
+<li><span class="math inline">\(\text{cov}(\text{rg}_X,\text{rg}_Y)\)</span> is the covariance of the rank variables</li>
+<li><span class="math inline">\(\sigma_{\text{rg}_X}\)</span> and <span class="math inline">\(\sigma_{\text{rg}_Y}\)</span> are the standard deviations of the rank variables</li>
+</ul>
+</section><section id="testing-correlation-2" class="slide level2">
+<h1>Testing Correlation</h1>
+<p><strong>Spearman’s rho:</strong></p>
+<pre class="r"><code>ggplot(USmelanoma[USmelanoma$ocean == &quot;no&quot;, ],  aes(x = latitude, y = mortality)) +
+  geom_point(size = 2)</code></pre>
+<figure>
+<img src="graphics/spearman-1.svg" />
+</figure>
+</section><section id="testing-correlation-3" class="slide level2">
+<h1>Testing Correlation</h1>
+<p><strong>Spearman’s rho:</strong></p>
+<pre class="r"><code>cor.test(~ mortality + latitude, USmelanoma[USmelanoma$ocean == &quot;no&quot;, ], method = &quot;pearson&quot;)</code></pre>
+<pre><code>
+    Pearson&#39;s product-moment correlation
+
+data:  mortality and latitude
+t = -6.0679, df = 25, p-value = 2.432e-06
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ -0.8905788 -0.5542985
+sample estimates:
+       cor 
+-0.7717501 </code></pre>
+<pre class="r"><code>cor.test(~ mortality + latitude, USmelanoma[USmelanoma$ocean == &quot;no&quot;, ], method = &quot;spearman&quot;)</code></pre>
+<pre><code>Warning in cor.test.default(x = c(160L, 170L, 149L, 177L, 116L, 124L,
+128L, : Cannot compute exact p-value with ties</code></pre>
+<pre><code>
+    Spearman&#39;s rank correlation rho
+
+data:  mortality and latitude
+S = 6051.7, p-value = 2.484e-08
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+       rho 
+-0.8472713 </code></pre>
+</section><section id="testing-correlation-4" class="slide level2">
+<h1>Testing Correlation</h1>
+<pre><code>proc corr pearson spearman data = usmelanoma;
+    where ocean eq &quot;no&quot;;
+    var mortality latitude;
+run;</code></pre>
+</section></section>
+<section><section id="graphical-analysis-for-more-than-one-variable" class="titleslide slide level1"><h1>Graphical analysis for more than one variable</h1></section><section id="mortality-rates-by-latitude" class="slide level2">
+<h1>Mortality rates by latitude</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = latitude, y = mortality, colour = ocean)) +
+  geom_point(size = 2)</code></pre>
+<figure>
+<img src="graphics/mort_lat_funky-1.svg" />
+</figure>
+</section><section id="mortality-rates-by-latitude-1" class="slide level2">
+<h1>Mortality rates by latitude</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = latitude, y = mortality)) +
+  geom_point(size = 2) +
+  facet_grid(. ~ ocean)</code></pre>
+<figure>
+<img src="graphics/mort_lat_funky_15-1.svg" />
+</figure>
+</section><section id="mortality-rates-by-latitude-2" class="slide level2">
+<h1>Mortality rates by latitude</h1>
+<pre class="r"><code>ggplot(USmelanoma, aes(x = latitude, y = mortality, colour = ocean, size = longitude)) +
+  geom_point()</code></pre>
+<figure>
+<img src="graphics/mort_lat_funky_2-1.svg" />
+</figure>
+</section><section id="mosaic-plot-for-categorical-data" class="slide level2">
+<h1>Mosaic plot for categorical data</h1>
+<pre class="r"><code>mosaicplot(~ Sex + Class + Survived, Titanic,
+           main = &quot;Survival on the Titanic&quot;,
+           col = hcl(c(240, 120)),
+           off = c(5, 5, 5, 5))</code></pre>
+<figure>
+<img src="graphics/mosaic-1.svg" />
+</figure>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

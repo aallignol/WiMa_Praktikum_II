@@ -1,0 +1,562 @@
+---
+title: Missing Values
+author: Arthur Allignol
+transition: convex
+hlss: github
+smart: true
+theme: white
+slideNumber: true
+
+---
+
+
+
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\be}{\mathbf{b}}
+\newcommand{\b}{\boldsymbol\beta}
+\newcommand{\ve}{\boldsymbol\varepsilon{}}
+\newcommand{\hb}{\hat{\beta}}
+\newcommand{\E}{\text{E}}
+\newcommand{\P}{\text{Pr}}
+\newcommand{\d}{\text{d}}
+\newcommand{\var}{\text{var}}
+\newcommand{\cov}{\text{cov}}
+\newcommand{\cor}{\text{cor}}
+\newcommand{\I}{\mathbf{I}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\ymis}{Y_{\text{mis}}}
+\newcommand{\yobs}{Y_{\text{obs}}}
+
+# Introduction #
+
+## Introduction ##
+
+Missing data are ubiquitous 
+
+- Missing data for some variables (e.g., a test not done...)
+- for some cases (e.g., record lost)
+
+Bad handling of missing data can lead to 
+
+- Blurred effect estimates
+- and/or biased effect estimates
+
+# Types of missing data #
+
+## Types of missing data ##
+
+Suppose that the data set is a $n \times p$ matrix $Y = (Y_{ij})$
+
+Let $M = (M_{ij})$ be a matrix indicating whether the data point
+$Y_{ij}$ is 
+
+- present: $M_{ij} = 0$
+- missing: $M_{ij} = 1$
+
+The missingness mechanism is supposed to be modelled by a set of
+probability distributions ${\cal L}(M | \psi)$
+
+## Missing completely at random ##
+
+if missingness is independent of the data, 
+
+$$
+\P(M = m| Y, \psi) = \P(M = m | \psi) \quad \text{for all $m$ and $\psi$},
+$$
+
+then the missingness model is said to be *Missing Completely At
+Random* (MCAR)
+
+Because the mechanism of missingness is only due to chance, deleting
+MCAR data will not bias the results, but the effective sample size is
+lowered (loss of efficiency)
+
+## Missing at random ##
+
+Let $Y = (\ymis, \yobs)$ the partition of the data into observed and
+missing data where $Y_{ij}$ is part of $\ymis$ iff $M_{ij} = 1$ and
+part of $\yobs$ otherwise
+  
+If the missingness only depends on the observed data,
+
+$$
+\P(M = m | Y, \psi) = \P(M = m | \yobs, \psi)\quad \text{for all $m$ and $\psi$},
+$$
+
+then the missingness is said to be *Missing At Random* (MAR)
+
+
+## Missing not at random ##
+
+If the missingness depends on unobserved data (i.e., MAR does not
+hold) then the missingness model is said to be *Missing Not At Random*
+(MNAR)
+
+That's the most annoying situation...
+
+but sometimes it is possible to make meaningful models of the
+missingness mechanism; 
+
+This will be based on partially untestable
+assumptions, and a sensitivity analysis often is appropriate.
+
+## Introduction ##
+
+Naive ways of dealing with missingness usually assume MCAR without
+thinking
+
+Large improvements in handling missing data can be had by using
+appropriate methods and exploiting the MAR assumption
+
+MNAR is another beast...
+
+We focus on MAR data in this lecture
+
+# How **not** to handle missing data #
+
+## Bad ways to handle missing data ##
+
+**Deletion methods**
+
+- _Listwise deletion_: delete the entire observation if any values are
+  missing 
+  
+	  That's what, e.g., `lm()`, `glm()` does if either outcome variable
+	  or dependent variables are missing
+  
+	  For longitudinal models (e.g., `lmer`), listwise deletion only if
+	  explanatory variables are missing
+    
+- _Pairwise deletion_: delete a pair of observations if either of the
+  values are missing
+  
+If the missing data are *MCAR*, deletions will result in *unbiased*
+estimates
+
+But:
+
+- Reduction in statistical power if MCAR
+- Biased estimates if MAR or MNAR
+
+## Bad ways to handle missing data ##
+
+**Single imputation methods**
+
+Single imputation methods replace missing data with some type of data
+
+- *Single:* One value used
+- *Imputation:* Replace missing data with value
+
+One can then use the entire data set for fitting the model
+
+**BUT** biased parameter estimates and standard errors even if the
+missing data are MCAR
+
+## Bad ways to handle missing data ##
+
+**Last Observation Carried Forward** (LOCF; for longitudinal data)
+
+The idea of LOCF is to replace observations that dropped out by the
+last available value
+
+- That assumes that the variable do not change after drop out
+
+	Thought to be conservative (assuming a monotone beneficial effect
+	of a treatment)
+	
+	The other way around, it can exaggerate group differences
+	
+## Bad ways to handle missing data ##
+
+**Summary**
+
+All the methods presented so far are bad for handling missing values
+
+- They all lead to too small standard errors (&rarr; inflation of the
+  type I error)
+
+- Parameter estimates likely to be biased (in either direction)
+
+	- Exception is deletion under MCAR
+	
+# Preferred methods for dealing with missing values #
+
+## Multiple Imputation ##
+
+Let $Q$ be the population quantity of interest. For instance a
+regression coefficient
+
+If all the data have been observed, estimates and inferences for $Q$
+would have been based on the complete-data posterior density 
+
+$$
+f(Q|\yobs, \ymis)
+$$
+
+As is $\ymis$ is not observed, inferences have to be based on the
+actual posterior density
+
+$$
+f(Q|\yobs) = \int f(Q|\yobs, \ymis)f(\ymis|\yobs)\d\ymis
+$$
+
+## Multiple imputation ##
+
+$$
+f(Q|\yobs) = \int f(Q|\yobs, \ymis)f(\ymis|\yobs)\d\ymis
+$$
+
+The actual posterior density of $Q$ can be obtained by averaging the
+complete posterior density over the posterior predictive distribution
+of $\ymis$
+
+In a nutshell, the idea behind MI is to independently draw multiple
+times from $f(\ymis | \yobs)$. 
+
+Then multiple imputation allows approximating the above equation by
+separately analysing each data set completed by imputation and then
+combining the results
+
+## Multiple imputation ##
+
+The idea of multiple imputation is 
+
+1. Impute missing values by drawing from the observed values
+2. Repeat the process several times
+3. Average the results in order to get an estimate with a measure of
+   uncertainty that accounts for the uncertainty due to imputation
+
+![](graphics/MI_schema.png)
+
+## Multiple imputation &mdash; a simple example ##
+
+
+```r
+set.seed(10)
+x <- c(sample(1:10, 7, TRUE), rep(NA, 3))
+x
+```
+
+```
+ [1]  6  4  5  7  1  3  3 NA NA NA
+```
+
+## Multiple imputation &mdash; a simple example ##
+
+- Compute mean using case deletion
+
+
+```r
+mean(x, na.rm = TRUE)
+```
+
+```
+[1] 4.142857
+```
+
+- Standard error
+
+
+```r
+sd(x, na.rm = TRUE)/sqrt(sum(!is.na(x)))
+```
+
+```
+[1] 0.7693093
+```
+
+- Single mean imputation
+
+```r
+x_imp <- c(x[!is.na(x)], rep(mean(x, na.rm = TRUE), 3))
+sd(x_imp)/sqrt(10)
+```
+
+```
+[1] 0.5255383
+```
+
+## Multiple imputation &mdash; a simple example ##
+
+- Now let's impute several times to generate a list of imputed
+  vectors:
+  
+
+```r
+imp <- replicate(15, c(x[!is.na(x)], sample(x[!is.na(x)], 3, TRUE)), simplify = FALSE)
+imp
+```
+
+```
+[[1]]
+ [1] 6 4 5 7 1 3 3 4 1 7
+
+[[2]]
+ [1] 6 4 5 7 1 3 3 1 7 6
+
+[[3]]
+ [1] 6 4 5 7 1 3 3 1 5 7
+
+[[4]]
+ [1] 6 4 5 7 1 3 3 6 4 5
+
+[[5]]
+ [1] 6 4 5 7 1 3 3 3 3 1
+
+[[6]]
+ [1] 6 4 5 7 1 3 3 3 5 5
+
+[[7]]
+ [1] 6 4 5 7 1 3 3 1 3 4
+
+[[8]]
+ [1] 6 4 5 7 1 3 3 3 5 7
+
+[[9]]
+ [1] 6 4 5 7 1 3 3 6 4 3
+
+[[10]]
+ [1] 6 4 5 7 1 3 3 5 3 3
+
+[[11]]
+ [1] 6 4 5 7 1 3 3 3 1 7
+
+[[12]]
+ [1] 6 4 5 7 1 3 3 4 4 6
+
+[[13]]
+ [1] 6 4 5 7 1 3 3 3 4 4
+
+[[14]]
+ [1] 6 4 5 7 1 3 3 6 7 6
+
+[[15]]
+ [1] 6 4 5 7 1 3 3 3 5 3
+```
+
+## Multiple imputation &mdash; a simple example ##
+
+- Mean for each imputed vector 
+
+
+```r
+means <- sapply(imp, mean)
+means
+```
+
+```
+ [1] 4.1 4.3 4.2 4.4 3.6 4.2 3.7 4.4 4.2 4.0 4.0 4.3 4.0 4.8 4.0
+```
+
+- Average over the imputed vectors
+
+
+```r
+grandm <- mean(means)
+grandm
+```
+
+```
+[1] 4.146667
+```
+
+## Multiple imputation &mdash; a simple example ##
+
+- Obtain standard errors
+
+	We need to combine the within- and between-imputation variance
+	
+
+```r
+ses <- sapply(imp, sd)/sqrt(10)
+within <- mean(ses)
+between <- sum((means - grandm)^2)/(length(imp) - 1)
+
+grandvar <- within + ((1 + (1/length(imp))) * between)
+grandse <- sqrt(grandvar)
+grandse
+```
+
+```
+[1] 0.8387083
+```
+Note that the SE is bigger than that of the complete case
+analysis. That's actually a good thing because we need to take into
+account the uncertainty due to the imputation
+
+
+## Imputing the missing data ##
+
+Let the hypothetically complete data be a partially observed random
+sample from the multivariate distribution $P(Y | \theta)$, with
+$\theta$ a vector of unknown parameters.
+
+One approach is to assume that $P(Y | \theta)$ can be modelled by a
+joint multivariate distribution, e.g., multivariate normal. Then the
+imputed values can be drawn from the corresponding predictive
+distribution.
+
+Although theoretically sound this approach is limited if $Y$ contains
+a mix of continuous and binary variables
+
+## Fully conditional specification ##
+
+The idea of the fully conditional specification is to obtain a
+posterior distribution of $\theta$ by sampling iteratively from
+conditional distribution of the form
+
+$$
+\begin{array}{l}
+p(Y_1 | Y_{-1}, \theta_1) \\
+\vdots \\
+p(Y_p | Y_{-p}, \theta_p) \\
+\end{array}
+$$
+
+$\theta_1, \cdots, \theta_p$ are specific to the respective
+conditional densities
+
+## MICE ##
+
+Multiple Imputation by Chained Equations is a popular implementation
+of the fully conditional specification. The algorithm works as follows
+
+For the first iteration $Y_j^{(0)}$, random values of the observed
+$Y_j$ are drawn
+
+Now assume that the algorithm is at the $t$-th iteration. The
+imputations at the next iteration are random draws from 
+
+$$
+\begin{array}{l}
+\theta_1^{*(t)} \sim p(\theta_1| Y_{1;\text{obs}}, Y_{-1}^{(t-1)}) \\
+Y_1^{(t)} \sim p(Y_1 | Y_{1;\text{obs}}, Y_{-1}^{(t-1)}; \theta_1^{*(t)}) \\
+\vdots\\
+\theta_p{*(t)} \sim p(\theta_p| Y_{p;\text{obs}}, Y_{-p}^{(t)}) \\
+Y_p^{(t)} \sim p(Y_p | Y_{p;\text{obs}}, Y_{-p}^{(t)}; \theta_p^{*(t)}) \\
+\end{array}
+$$
+
+## The imputation models ##
+
+We need to decide on
+
+- The structural form of the imputation model; usually steered by the
+  scale of the variable to impute
+- Which variables to include: As many relevant variables as
+  possible. Note that the *outcome variable* as well as the *dependent
+  variables* included in the *analysis model* should be included
+- Order in which variables should be imputed
+- Number of iterations of the algorithm. It's usually fast, but
+  convergence should be monitored
+- Number of imputed data sets $m$. Too low leads to
+  undercoverage. Some argues that $m=5$ is enough; others say $m \geq
+  50$
+  
+## Fully conditional specification ##
+
+**Pros:**
+
+FCS is extremely flexible
+
+- One model per variable to impute permits to avoid implausible values
+  (e.g., gender equal to 0.7)
+- There is ways to specify how some variables are related in order to
+  avoid pregnant fathers
+- Passive imputation: Impute height and weight. The software takes
+  care of BMI
+- Shown to work quite well in practice
+- Can be extended to MNAR by specifying the right missing data
+  mechanism
+  
+**Cons**
+
+- Theoretical rational not well established
+- Appropriateness of the algorithm mostly demonstrated through
+  simulation studies. Some work might still be needed in order to
+  identify the boundaries at which the algorithm breaks down
+  
+
+## Analysing Multiply imputed data ##
+
+Let $\hat{Q}_i$ be the estimate from the $i$-th data set ad $S_i$ the
+corresponding variance. 
+
+The combined estimate of $Q$ is
+
+$$
+\bar{Q} = \frac{1}{m} \sum_{i= 1}^m \hat{Q}_i
+$$
+
+The combined variance depends on the within-imputation variance
+
+$$
+\bar{S} = \frac{1}{m} \sum_{i= 1}^m S_i
+$$
+
+and the between-imputation variance
+
+$$
+B = \frac{1}{m - 1}\sum_{i = 1}^m (\hat{Q}_i - \bar{Q})^2
+$$
+
+Then the total variance is
+
+$$
+T = \bar{S} + (1 + m^{-1})B
+$$
+
+## Summary ##
+
+- FCS provides a flexible method for dealing with missing values
+
+- Other methods exist:
+
+	**Full Information Likelihood Strategy**: integrates out the
+    missing data when fitting the desired model; Needs a specification
+    of the full data likelihood; Works under MAR and MNAR (with more
+    assumptions)
+	
+	**Inverse probability weighting**: Weight cases by their
+    probability of having complete data
+	
+	E.g., an individual with a low probability of being a complete case
+    will receive more weight (and count, say, 3 times)
+	
+	You need a model for this probability
+	
+<!-- # Other methods for dealing with missing data # -->
+
+<!-- ## Maximum likelihood ## -->
+
+<!-- Let  -->
+
+<!-- $$ -->
+<!-- L = \prod f(y; \theta) -->
+<!-- $$ -->
+
+<!-- be the likelihood for the full data -->
+
+<!-- One can show, under the MAR assumption, that  -->
+
+<!-- $$ -->
+<!-- f^*(y_{\text{obs}}) = \sum_{y_{\text{mis}}} f(y; \theta) -->
+<!-- $$  -->
+
+<!-- If the variables are continuous -->
+
+<!-- $$ -->
+<!-- f^*(y_{\text{obs}}) = \int f(y; \theta)d y_{\text{mis}} -->
+<!-- $$ -->
+
+<!-- Thus under MAR, a likelihood based on the observed data permits to -->
+<!-- obtain estimates of $\theta$ by integrating out the missing values -->
+
+<!-- &rarr; One needs to write down the full likelihood and estimate it -->
+<!-- (that's getting easier) -->
+
+

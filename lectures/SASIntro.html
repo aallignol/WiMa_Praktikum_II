@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>(Quick) Introduction to SAS</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">(Quick) Introduction to SAS</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="what-is-sas" class="slide level2">
+<h1>What is SAS</h1>
+<ul>
+<li>Developed in the early 1970s</li>
+<li>Used to stand for “Statistical Analysis System”</li>
+<li>Still a (the) prominent player in the industry</li>
+</ul>
+<p>Pros and cons (according to myself)</p>
+<ul>
+<li>Good data handling (especially big data)</li>
+<li>Rich documention</li>
+<li>Decent IDE</li>
+<li>Expensive</li>
+<li>Awful graphics (without giving more $$)</li>
+<li>Awful lot of outputs</li>
+<li>Real programming cumbersome (SAS developed in a time when there were still punchcards)</li>
+</ul>
+</section><section id="what-is-sas-1" class="slide level2">
+<h1>What is SAS</h1>
+<blockquote>
+<p>You must realize that R is written by experts in statistics and statistical computing who, despite popular opinion, do not believe that everything in SAS and SPSS is worth copying. Some things done in such packages, which trace their roots back to the days of punched cards and magnetic tape when fitting a single linear model may take several days because your first 5 attempts failed due to syntax errors in the JCL or the SAS code, still reflect the approach of “give me every possible statistic that could be calculated from this model, whether or not it makes sense”. The approach taken in R is different. The underlying assumption is that the useR is thinking about the analysis while doing it.</p>
+</blockquote>
+<p>Douglas Bates</p>
+</section><section id="basic-structure-of-a-sas-program" class="slide level2">
+<h1>Basic structure of a SAS program</h1>
+<p>Two main components to most SAS programs</p>
+<ol type="i">
+<li>The data step(s):
+<ul>
+<li>reads data from external sources, manipulates and combines it with other data sets</li>
+</ul></li>
+<li>The procedure step(s):
+<ul>
+<li>The procedure steps perform the analysis on the data, and produce (often huge amounts of) output.</li>
+</ul></li>
+</ol>
+<ul>
+<li>SAS is not case-sensitive (contrary to R)</li>
+<li>Missing values represented by a period (<code>.</code>)</li>
+<li>Each statement in SAS must end in a semicolon</li>
+</ul>
+</section><section id="sas-ide" class="slide level2">
+<h1>SAS IDE</h1>
+<figure>
+<img src="graphics/sas_console.png" />
+</figure>
+</section></section>
+<section><section id="read-data" class="titleslide slide level1"><h1>Read data</h1></section><section id="proc-import" class="slide level2">
+<h1>proc import</h1>
+<pre class="sas"><code>proc import datafile=&#39;/folders/myshortcuts/WiMa_Praktikum/lectures/illustration/sleep.csv&#39;
+    out=sleep
+    dbms=csv
+    replace;
+run;</code></pre>
+<ul>
+<li><code>datafile</code> specifies the path to the data set</li>
+<li><code>out</code>: name of the data set in SAS</li>
+<li><code>dbms</code>: file type</li>
+<li><code>replace</code> replace the <code>sleep</code> data set if <code>proc import</code> is rerun</li>
+<li>The <code>run;</code> command signals to SAS that the previous commands can be executed</li>
+</ul>
+</section><section id="proc-import-1" class="slide level2">
+<h1>proc import</h1>
+<figure>
+<img src="graphics/sas_sleep_data.png" />
+</figure>
+</section><section id="import-data-in-a-data-step" class="slide level2">
+<h1>Import data in a data step</h1>
+<pre class="sas"><code>data sleep2;
+    infile &#39;/folders/myshortcuts/WiMa_Praktikum/lectures/illustration/sleep.csv&#39;
+    dsd
+    delimiter = &#39;,&#39;
+    firstobs = 2;
+input extra group id;
+</code></pre>
+<ul>
+<li><code>infile</code> specifies where the file is</li>
+<li><code>dsd</code> is an option to handle missing values, e.g., <code>30,,40,50</code></li>
+<li><code>delimiter</code> specifies how the data are separated, in this case with a <code>,</code></li>
+<li><code>firstobs</code> tells SAS to start reading the data at the 2nd line</li>
+<li>The <code>input</code> statement gives the variable names</li>
+</ul>
+</section></section>
+<section><section id="the-data-step" class="titleslide slide level1"><h1>The data step</h1></section><section id="introduction-1" class="slide level2">
+<h1>Introduction</h1>
+<p>Data steps are made up of programming statements, e.g.,</p>
+<ul>
+<li>Assignment</li>
+<li>conditional operations</li>
+<li>subsetting</li>
+</ul>
+<p>The Data step always begin with the keyword <code>data</code> followed by the name you want to give to the resulting data set</p>
+<ul>
+<li>Optionally the <code>set</code> statement permits to process an existing data set</li>
+</ul>
+</section><section id="operators" class="slide level2">
+<h1>Operators</h1>
+<p>Arithmetic operators</p>
+<table>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>*</code></td>
+<td style="text-align: left;">multiplication</td>
+<td style="text-align: left;"><code>+</code></td>
+<td style="text-align: left;">addition</td>
+<td style="text-align: left;"><code>/</code></td>
+<td style="text-align: left;">division</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-</code></td>
+<td style="text-align: left;">subtraction</td>
+<td style="text-align: left;"><code>**</code></td>
+<td style="text-align: left;">exponentiation</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p>Comparison operators</p>
+<table>
+<tbody>
+<tr class="odd">
+<td><code>=</code> or <code>eq</code></td>
+<td style="text-align: left;">equal to</td>
+<td style="text-align: left;"><code>^=</code> or <code>ne</code></td>
+<td style="text-align: left;">not equal to</td>
+</tr>
+<tr class="even">
+<td><code>&gt;</code> or <code>gt</code></td>
+<td style="text-align: left;">greater then</td>
+<td style="text-align: left;"><code>&gt;=</code> or <code>ge</code></td>
+<td style="text-align: left;">greater than or equal to</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;</code> or <code>lt</code></td>
+<td style="text-align: left;">less than</td>
+<td style="text-align: left;"><code>&lt;=</code> or <code>le</code></td>
+<td style="text-align: left;">less than or equal to</td>
+</tr>
+</tbody>
+</table>
+<p>Boolean Operators</p>
+<table>
+<tbody>
+<tr class="odd">
+<td><code>&amp;</code> or <code>and</code></td>
+<td style="text-align: left;">and</td>
+<td style="text-align: left;"><code>|</code> or <code>or</code></td>
+<td style="text-align: left;">or</td>
+<td style="text-align: left;"><code>^</code> or <code>not</code></td>
+<td style="text-align: left;">negations</td>
+</tr>
+</tbody>
+</table>
+</section><section id="assignment" class="slide level2">
+<h1>Assignment</h1>
+<p>Assignment statement assign values to new or existing variables. These values may be</p>
+<ul>
+<li>A constant</li>
+<li>Another variable</li>
+<li>The results of mathematical expressions</li>
+</ul>
+<pre><code>data sleep;
+    set sleep;
+    a_variable = 2;
+    extra_1 = extra ** 2;
+    extra_2 = log(extra_1);
+    extra_3 = exp(extra);
+    run;
+</code></pre>
+</section><section id="conditional-operations" class="slide level2">
+<h1>Conditional operations</h1>
+<pre><code>data sleep;
+    set sleep;
+    if extra &lt; 0 and group eq 2 then group_with_no_meaning = &#39;A&#39;;
+    else group_with_no_meaning = &#39;B&#39;;
+run;</code></pre>
+<figure>
+<img src="graphics/sas_sleep_2.png" />
+</figure>
+</section><section id="subsetting" class="slide level2">
+<h1>Subsetting</h1>
+<p>Subsetting if</p>
+<pre><code>data sleep_1;
+    set sleep;
+    if group eq 1 then delete;
+    run;</code></pre>
+<p><code>where</code> statement</p>
+<pre><code>data sleep_2;
+    set sleep(where = (group eq &#39;2&#39;));
+    run;</code></pre>
+<p><code>drop</code> or <code>keep</code> variables</p>
+<pre><code>data sleep_short;
+    set sleep;
+    drop group_with_no_meaning;
+    run;</code></pre>
+<pre><code>data sleep_short;
+    set sleep_short;
+    keep id group extra;
+    run;</code></pre>
+</section></section>
+<section><section id="sas-procedures" class="titleslide slide level1"><h1>SAS procedures</h1></section><section id="sas-procedures-1" class="slide level2">
+<h1>SAS procedures</h1>
+<p>SAS procedures begin with the keyword <code>proc</code> followed by the name of the procedure and the name of the data you want to use in the procedure.</p>
+<pre><code>proc contents data=sleep;
+run;</code></pre>
+<figure>
+<img src="graphics/content_sleep.png" />
+</figure>
+</section><section id="sas-procedures-2" class="slide level2">
+<h1>SAS procedures</h1>
+<pre><code>proc print data=sleep(where = (group = &quot;1&quot;));
+    var group extra;
+    run;</code></pre>
+<figure>
+<img src="graphics/print_sleep.png" />
+</figure>
+</section></section>
+<section><section id="output-delivery-system-ods" class="titleslide slide level1"><h1>Output delivery System (ODS)</h1></section><section id="what-is-ods" class="slide level2">
+<h1>What is ODS</h1>
+<p>To provide more flexibility in producing outputs, SAS introduced the ODS. Output can be produced in the following format</p>
+<ul>
+<li>SAS data set (<code>OUTPUT</code>)</li>
+<li>Normal listing (<code>LISTING</code>)</li>
+<li>Postscript (<code>PRINTER</code>)</li>
+<li>PDF (<code>PDF</code>)</li>
+<li>HTML (<code>HTML</code>)</li>
+<li>RTF (<code>RTF</code>)</li>
+</ul>
+<p>Procedures produce ODS objects (find their names using the help pages or <code>ODS TRACE ON</code></p>
+</section><section id="an-example" class="slide level2">
+<h1>An example</h1>
+<pre><code>ods html file = &#39;test.html&#39;;
+
+proc means data = sleep;
+    var extra;
+    by group;
+    run;
+    
+ods html close;</code></pre>
+</section><section id="only-output-a-part-of-the-results" class="slide level2">
+<h1>Only output a part of the results</h1>
+<p>First search what you want with <code>ods trace on</code></p>
+<pre><code>ods trace on;
+proc univariate data = sleep;
+    var extra;
+    run;
+ods trace off;</code></pre>
+<p>then output the part you want</p>
+<pre><code>ods output Univariate.extra.BasicMeasures = basic;
+proc univariate data = sleep;
+    var extra;
+    run;</code></pre>
+<p>and print to a file</p>
+<pre><code>ods rtf file = &#39;/folders/myshortcuts/WiMa_Praktikum/lectures/illustration/test.rtf&#39;;
+proc print data = basic;
+run;
+ods rtf close;</code></pre>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

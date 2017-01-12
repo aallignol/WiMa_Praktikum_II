@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Generalized Linear Model</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Generalized Linear Model</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="introduction-1" class="slide level2">
+<h1>Introduction</h1>
+<p>Ordinary linear regression models assume the response variable to be (approximately) normal distributed. However, many experiments require an assessment of the relationship between covariates and a binary response variable, i.e., a variable measured at only two levels, or counts.</p>
+<p>Generalised linear models provide a framework for the estimation of regression models with non-normal response variables. The regression relationship between the covariates and the response is modelled by a linear combination of the covariates.</p>
+</section><section id="introduction-2" class="slide level2">
+<h1>Introduction</h1>
+<p>The ordinary multiple regression model is described as <span class="math inline">\(Y \sim {\cal N}(\mu, \sigma^2)\)</span> where</p>
+<p><span class="math display">\[\mu = \beta_0 + \beta_1 x_1 + \dots + \beta_q x_q.\]</span></p>
+<p>This makes it clear that this model is suitable for continuous response variables with, conditional on the values of the explanatory variables, a normal distribution with constant variance.</p>
+<p>So clearly the model would not be suitable for, e.g., a binary response variable.</p>
+</section><section id="logistic-regression-for-binary-response" class="slide level2">
+<h1>Logistic regression for binary response</h1>
+<p>For modelling the expected value of the response directly as a linear function of explanatory variables, a suitable transformation is modelled. In this case of a binary response, the most suitable transformation is the <strong>logistic</strong> or <strong>logit</strong> function of <span class="math inline">\(\pi = P(y = 1)\)</span> leading to the model</p>
+<p><span class="math display">\[
+\text{logit}(\pi) =
+\log\left(\frac{\pi}{1 - \pi}\right) = \beta_0 + \beta_1 x_1 + \dots +
+\beta_q x_q.
+\]</span></p>
+<p>The logit of a probability is simply the log of the odds of the response taking the value one.</p>
+</section><section id="logistic-regression-for-binary-response-1" class="slide level2">
+<h1>Logistic regression for binary response</h1>
+<p>The logit function can take any real value, but the associated probability always lies in the required <span class="math inline">\([0,1]\)</span> interval.</p>
+<p>In a logistic regression model, the parameter <span class="math inline">\(\beta_j\)</span> associated with explanatory variable <span class="math inline">\(x_j\)</span> is such that <span class="math inline">\(\exp(\beta_j)\)</span> is the odds that the response variable takes the value one when <span class="math inline">\(x_j\)</span> increases by one, conditional on the other explanatory variables remaining constant.</p>
+<p>The parameters of the logistic regression model (the vector of regression coefficients <span class="math inline">\(\beta\)</span>) are estimated by maximum likelihood.</p>
+</section><section id="poisson-regression-for-count-data" class="slide level2">
+<h1>Poisson regression for count data</h1>
+<p>Suppose that <span class="math inline">\({\mathbf{y}}\)</span> can be treated as realisations of independent Poisson r.v (e.g., count data).</p>
+<p>A simple linear model of the form</p>
+<p><span class="math display">\[\mu = \beta_0 + \beta_1 x_1 + \dots + \beta_q x_q\]</span></p>
+<p>has the disadvantage that the linear predictor on the right hand side can assume any real value, whereas the Poisson mean on the left hand side, which represents an expected count, has to be non-negative.</p>
+<p>A solution is to consider <span class="math inline">\(\eta = \log(\mu)\)</span> and the generalized linear model</p>
+<p><span class="math display">\[\log\mu = \beta_0 + \beta_1 x_1 + \dots + \beta_q x_q.\]</span></p>
+<!-- ## Generalized linear model ## -->
+<!-- Essentially GLMs consist of three main features -->
+<!-- 1. An **error distribution** giving the distribution of -->
+<!--    the response around its mean.  -->
+<!-- 2. A **link function**, $g$, that shows how -->
+<!--       the linear function of the explanatory variables is related to -->
+<!--       the expected value of the response -->
+<!--       $$ -->
+<!--       g(\mu) = \beta_0 + \beta_1 x_1 + \dots + \beta_q x_q. -->
+<!--       $$ -->
+<!-- 3. The **variance function** that captures how the variance -->
+<!--    of the response variable depends on the mean.  -->
+<!-- Estimation of the parameters in a GLM is usually achieved -->
+<!-- through a maximum likelihood approach -->
+</section></section>
+<section><section id="generalized-linear-model" class="titleslide slide level1"><h1>Generalized linear model</h1></section><section id="glm-definition" class="slide level2">
+<h1>GLM definition</h1>
+<p>The linear, logistic, Poisson, …, regression models have some common features that we can abstract of form the <em>generalized linear model</em></p>
+<p>A GLM is defined by specifying two components.</p>
+<ul>
+<li>The response should be a member of exponential family distribution</li>
+<li>The link function describes how the mean of the response and a linear combination of the predictors are related</li>
+</ul>
+</section><section id="exponential-family" class="slide level2">
+<h1>Exponential family</h1>
+<p>In a GLM, the distribution of <span class="math inline">\(Y\)</span> is from the exponential family of distribution which takes the form</p>
+<p><span class="math display">\[
+f(y | \theta, \phi) =
+\exp\left[\frac{y\theta - b(\theta)}{a(\phi)} + c(y, \phi)\right]
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\theta\)</span> is called the <em>canonical parameter</em> and represents the location</li>
+<li><span class="math inline">\(\phi\)</span> is the <em>dispersion parameter</em> and represents the scale</li>
+</ul>
+<p>We can define various members of the family by specifying the functions <span class="math inline">\(a, b\)</span>, and <span class="math inline">\(c\)</span></p>
+</section><section id="exponential-family-normal" class="slide level2">
+<h1>Exponential family — Normal</h1>
+<p>The density is</p>
+<p><span class="math display">\[
+\begin{align}
+f(y | \theta, \phi) &amp;=
+\frac{1}{\sqrt{2\pi}\sigma}\exp\left[-\frac{(y - \mu)^2}{2\sigma^2}\right] \\
+&amp;=
+\exp\left[\frac{y\mu - \mu^2/2}{\sigma^2} - \frac{1}{2}\left(\frac{y^2}{\sigma^2} + \log(2\pi\sigma^2)\right)\right],
+\end{align}
+\]</span></p>
+<p>such that</p>
+<ul>
+<li><span class="math inline">\(\theta = \mu\)</span></li>
+<li><span class="math inline">\(\phi = \sigma^2\)</span></li>
+<li><span class="math inline">\(a(\phi) = \phi\)</span></li>
+<li><span class="math inline">\(b(\theta) = \theta^2/2\)</span></li>
+</ul>
+</section><section id="exponential-family-poisson" class="slide level2">
+<h1>Exponential family — Poisson</h1>
+<p><span class="math display">\[
+\begin{align}
+f(y | \theta, \phi) &amp;= e^{-y}\mu^y/y! \\
+&amp;= \exp(y\log\mu - \mu - \log y!)
+\end{align}
+\]</span></p>
+<p>So we can write</p>
+<ul>
+<li><span class="math inline">\(\theta = \log\mu\)</span></li>
+<li><span class="math inline">\(\phi = 1\)</span></li>
+<li><span class="math inline">\(a(\phi) = 1\)</span></li>
+<li><span class="math inline">\(b(\theta) = \exp(\theta)\)</span></li>
+</ul>
+</section><section id="exponential-family-binomial" class="slide level2">
+<h1>Exponential family — Binomial</h1>
+<p><span class="math display">\[ 
+\begin{align}
+f(y | \theta, \phi) &amp;= {n \choose y}\mu^y(1 - \mu)^{n - y} \\
+&amp;= \exp\left(y\log\mu + (n - y)\log(1 - \mu) + \log{n \choose
+y}\right) \\
+&amp;= \exp\left(y\log\frac{\mu}{1-\mu} + n\log(1 - \mu) + \log{n \choose
+y}\right)
+\end{align}
+\]</span></p>
+<p>such that</p>
+<ul>
+<li><span class="math inline">\(\theta = \log\frac{\mu}{1 - \mu}\)</span></li>
+<li><span class="math inline">\(\phi = 1\)</span></li>
+<li><span class="math inline">\(a(\phi) = \phi\)</span></li>
+<li><span class="math inline">\(b(\theta) = -n\log(1 - \mu) = n\log(1 + \exp\theta)\)</span></li>
+</ul>
+</section><section id="exponential-family-1" class="slide level2">
+<h1>Exponential family</h1>
+<p>The exponential family distributions have mean and variance</p>
+<p><span class="math display">\[
+\begin{align}
+{\text{E}}Y &amp;= \mu = b&#39;(\theta) \\
+{\text{var}}Y &amp;= b&#39;&#39;(\theta)a(\phi) = V(\mu)a(\phi)
+\end{align}
+\]</span></p>
+<dl>
+<dt>Gaussian:</dt>
+<dd><p><span class="math inline">\({\text{E}}Y = b&#39;(\theta) = \theta\)</span></p>
+</dd>
+<dd><span class="math inline">\({\text{var}}~ Y = b&#39;&#39;(\theta)a(\phi) = \sigma{^2}\)</span>
+</dd>
+<dd>Note that the variance does not depend on the mean
+</dd>
+<dt>Poisson:</dt>
+<dd><p><span class="math inline">\({\text{E}}Y = {\text{var}}Y = \mu\)</span></p>
+</dd>
+<dt>Binomial:</dt>
+<dd><p><span class="math inline">\(E Y = n\mu\)</span></p>
+</dd>
+<dd><span class="math inline">\({\text{var}}Y = n\mu(1-\mu)\)</span>
+</dd>
+</dl>
+</section><section id="link-function" class="slide level2">
+<h1>Link function</h1>
+<p>Suppose we express the effect of the predictors on the response through a <em>linear predictor</em></p>
+<p><span class="math display">\[
+\eta = \beta_0 + \beta_1 x_1 + \dots + \beta_q x_q = x^{T}\beta
+\]</span></p>
+<p>The link function, <span class="math inline">\(g\)</span>, describes how the mean response, <span class="math inline">\({\text{E}}Y = \mu\)</span>, is linked to the covariates through the linear predictors</p>
+<p><span class="math display">\[
+\eta = g(\mu)
+\]</span></p>
+<p>When the link function makes the linear predictor <span class="math inline">\(\eta\)</span> the same as the canonical parameter <span class="math inline">\(\theta\)</span>, we say that we have a <em>canonical link</em>. If a canonical link is used, <span class="math inline">\(X^{T}Y\)</span> is <em>sufficient</em> for <span class="math inline">\(\beta\)</span>.</p>
+</section><section id="canonical-links-for-glm" class="slide level2">
+<h1>Canonical links for GLM</h1>
+<table>
+<thead>
+<tr class="header">
+<th>Family</th>
+<th>Link</th>
+<th>Variance Function (<span class="math inline">\(b&#39;&#39;(\theta)\)</span>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Normal</td>
+<td><span class="math inline">\(\eta = \mu\)</span></td>
+<td><span class="math inline">\(1\)</span></td>
+</tr>
+<tr class="even">
+<td>Poisson</td>
+<td><span class="math inline">\(\eta = \log\mu\)</span></td>
+<td><span class="math inline">\(\mu\)</span></td>
+</tr>
+<tr class="odd">
+<td>Binomial</td>
+<td><span class="math inline">\(\eta = \log(\mu/(1 - \mu))\)</span></td>
+<td><span class="math inline">\(\mu(1 - \mu)\)</span></td>
+</tr>
+<tr class="even">
+<td>Gamma</td>
+<td><span class="math inline">\(\eta = \mu^{-1}\)</span></td>
+<td><span class="math inline">\(\mu^2\)</span></td>
+</tr>
+<tr class="odd">
+<td>Inverse Gaussian</td>
+<td><span class="math inline">\(\eta = \mu^{-2}\)</span></td>
+<td><span class="math inline">\(\mu^3\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>One is not required to use the canonical link, but that simplifies estimation</p>
+</section></section>
+<section><section id="estimation" class="titleslide slide level1"><h1>Estimation</h1></section><section id="estimation-1" class="slide level2">
+<h1>Estimation</h1>
+<p>The parameters <span class="math inline">\(\beta\)</span> of a GLM can be estimated using maximum likelihood.</p>
+<p>Assume <span class="math inline">\(a_i(\phi) = \phi / w_i\)</span>, are known <em>prior weights</em>. The log-likelihood for the sample <span class="math inline">\(y_1, \dots, y_n\)</span> is</p>
+<p><span class="math display">\[
+\log L(\theta, \phi; y) = \sum_{i = 1}^n
+w_i\left[\frac{y_i\theta_i - b(\theta_i)}{\phi}\right] + c(y_i, \phi)
+\]</span></p>
+<p>Exact solution only for the Gaussian case. Otherwise use numerical methods.</p>
+</section><section id="estimation-2" class="slide level2">
+<h1>Estimation</h1>
+<p>The estimates <span class="math inline">\({\hat{\beta}}\)</span> have the usual properties of MLE, in particular,</p>
+<p><span class="math display">\[ {\hat{\beta}}\sim {\cal N}(\beta, (X^TWX)^{-1}\phi) \]</span></p>
+<p>An estimator for <span class="math inline">\(\phi\)</span> can be obtained by the method of moments</p>
+<p><span class="math display">\[
+\hat\phi = \frac{1}{n - p}\sum \frac{w_i(y_i - \hat\mu_i)^2}{V(\hat\mu_i)}
+\]</span></p>
+</section></section>
+<section><section id="inference" class="titleslide slide level1"><h1>Inference</h1></section><section id="wald-test" class="slide level2">
+<h1>Wald test</h1>
+<p>Test of</p>
+<p><span class="math display">\[H_0: \beta_j = 0\]</span></p>
+<p>using the test statistic</p>
+<p><span class="math display">\[
+z = \frac{{\hat{\beta}}_j}{\sqrt\phi (X^TWX)_{jj}^{-1}}
+\]</span> with <span class="math inline">\(z \sim {\cal N}(0, 1)\)</span></p>
+</section><section id="likelihood-ratio-test-and-deviance" class="slide level2">
+<h1>Likelihood ratio test and deviance</h1>
+<p>A statistical model describes how we partition the data into a systematic structure and random variation</p>
+<ul>
+<li>The null model represents the situation where the data is represented entirely as random variation</li>
+<li>The saturated model (full model) represents the data as being entirely systematic</li>
+</ul>
+<p>Let’s consider the difference between the log-likelihood for the full model, <span class="math inline">\(l(y, \theta|y)\)</span>, and that of the model under consideration, <span class="math inline">\(l(\hat y, \theta | y)\)</span>, expressed as a likelihood ratio statistic</p>
+<p><span class="math display">\[
+2(l(y, \phi;y) - l(\hat y, \phi ; y)).
+\]</span></p>
+</section><section id="likelihood-ratio-test-and-deviance-1" class="slide level2">
+<h1>Likelihood ratio test and deviance</h1>
+<p>For an exponential family distribution, and considering <span class="math inline">\(a_i(\phi) = \phi/w_i\)</span>, the statistic simplifies to</p>
+<p><span class="math display">\[
+\sum_i 2w_i\frac{(y_i(\tilde{\theta}_i - \hat{\theta}_i) -
+b(\tilde{\theta}_i) + b(\hat{\theta}_i))}{\phi},
+\]</span></p>
+<p>where <span class="math inline">\(\tilde{\theta}\)</span> are the estimates under the full model</p>
+</section><section id="likelihood-ratio-test-and-deviance-2" class="slide level2">
+<h1>Likelihood ratio test and deviance</h1>
+<p>That can be written as</p>
+<p><span class="math display">\[
+\frac{D(y, \hat{\mu})}{\phi},
+\]</span></p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(D(y, \hat{\mu})\)</span> is the <em>deviance</em></li>
+<li><span class="math inline">\(D(y, \hat{\mu})/\phi\)</span> is the <em>scaled deviance</em></li>
+</ul>
+</section><section id="likelihood-ratio-test-and-deviance-3" class="slide level2">
+<h1>Likelihood ratio test and deviance</h1>
+<p>Comparison of two nested models <span class="math inline">\(\omega_1\)</span>, with <span class="math inline">\(p_1\)</span> parameters, and <span class="math inline">\(\omega_2\)</span>, with <span class="math inline">\(p_2\)</span> parameters, such that <span class="math inline">\(\omega_1 \in \omega_2\)</span> and <span class="math inline">\(p_2 &gt; p_1\)</span>.</p>
+<p>The log of the ratio of maximised likelihoods under the two models can be written as a difference of deviances, since the maximised log-likelihood under the saturated model cancels out. Thus, we have</p>
+<p><span class="math display">\[
+-2 \log \Lambda = \frac{D(\omega_1) - D(\omega_2)}{\phi}
+\]</span></p>
+<p>The scale parameter is either known, or estimated from the larger model.</p>
+<p>The criterion is approximately <span class="math inline">\(\chi^2_{p_2 - p_1}\)</span></p>
+</section></section>
+<section><section id="glm-diagnostics" class="titleslide slide level1"><h1>GLM Diagnostics</h1></section><section id="residuals" class="slide level2">
+<h1>Residuals</h1>
+<p>Several kinds of residuals can be defined for GLMs</p>
+<dl>
+<dt>Response residuals</dt>
+<dd><p><span class="math inline">\(\hat\varepsilon = y - \hat\mu\)</span></p>
+</dd>
+<dt>Pearson residuals</dt>
+<dd><p><span class="math inline">\(r_P = \frac{y - \hat{\mu}}{\sqrt{V(\hat{\mu})}}\)</span></p>
+</dd>
+<dt>Deviance residuals</dt>
+<dd><p>Deviance residuals <span class="math inline">\(r_D\)</span> defined such that <span class="math inline">\(\sum r_{D}^{2} = \text{Deviance} = \sum d_i\)</span>. Thus</p>
+</dd>
+</dl>
+<p><span class="math display">\[r_D = \text{sign}(y - \hat{\mu})\sqrt{d_i}\]</span></p>
+</section><section id="diagnostic-plots" class="slide level2">
+<h1>Diagnostic plots</h1>
+<ul>
+<li><p>Residual plots are not really useful</p></li>
+<li><p>Plots that look for outliers should be looked. Again what to do with outliers depend on the subject matter</p></li>
+</ul>
+</section></section>
+<section><section id="models-for-binomial-data" class="titleslide slide level1"><h1>Models for binomial data</h1></section><section id="binomial-regression-model" class="slide level2">
+<h1>Binomial regression model</h1>
+<p>Suppose the response variable <span class="math inline">\(Y_i\)</span> for <span class="math inline">\(i = 1, \dots, n_i\)</span> is binomially distributed, with parameters <span class="math inline">\(n_i\)</span> and <span class="math inline">\(\pi_i\)</span> such that</p>
+<p><span class="math display">\[
+P(Y_i = y_i) = {n \choose y_i}\pi_i^{y_i}(1 - \pi_i)^{n_i - y_i}
+\]</span></p>
+<p>With individual data, <span class="math inline">\(n_i = 1\)</span> for all <span class="math inline">\(i\)</span>.</p>
+<p>We need a link function <span class="math inline">\(g\)</span> such that <span class="math inline">\(\eta_i = g(\pi_i)\)</span> and <span class="math inline">\(0 \leq g^{-1}(\eta) \leq 1\)</span> for any <span class="math inline">\(\eta\)</span>. There is 3 common choices</p>
+<ol type="1">
+<li><strong>Logit</strong>: <span class="math inline">\(\eta = \log(\pi/(1-\pi))\)</span></li>
+<li><strong>Probit</strong>: <span class="math inline">\(\eta = \Phi^{-1}(\pi)\)</span>, where <span class="math inline">\(\Phi\)</span> is the normal cumulative distribution function</li>
+<li><strong>Complementary log-log</strong>: <span class="math inline">\(\eta = \log(-\log(1 - \pi))\)</span></li>
+</ol>
+<p>Logit is the most natural (canonical link)</p>
+</section><section id="logistic-regression-model" class="slide level2">
+<h1>Logistic regression model</h1>
+<p><span class="math display">\[\text{logit}{\pi_i} = x^{T}\beta\]</span></p>
+<ul>
+<li><p>The regression coefficients <span class="math inline">\(\beta\)</span> can be interpreted along the same lines as in linear models.</p></li>
+<li><p><span class="math inline">\(\beta_j\)</span> represents the change in the logit of the probability associated with a unit change in the <span class="math inline">\(j\)</span>-th predictor holding all other predictors constant.</p></li>
+</ul>
+<p>Taking the exp of the equation above, we find</p>
+<p><span class="math display">\[
+\frac{\pi_i}{1 - \pi_i} = \exp(x^{T}\beta)
+\]</span></p>
+<p>If we change the <span class="math inline">\(j\)</span>-th predictor by one unit while holding the other variables constant, we multiply the odds by <span class="math inline">\(\exp{\beta_j}\)</span>.</p>
+<ul>
+<li><span class="math inline">\(\exp{\beta_j}\)</span> is an <em>odds-ratio</em>.</li>
+</ul>
+</section><section id="interpreting-odds" class="slide level2">
+<h1>Interpreting odds</h1>
+<p>Let’s say the probability of success is <span class="math inline">\(.8\)</span>, thus</p>
+<p><span class="math display">\[\pi = 0.8\]</span></p>
+<p>The probability of failure is <span class="math inline">\(1 - \pi = 0.2\)</span></p>
+<p>Odds are defined as the ratio of the probability of success and probability of failure</p>
+<p><span class="math display">\[ \text{odds(success)} = 4 \]</span></p>
+<p>Thus the odds of success are 4 to 1</p>
+<p>Say a variable <span class="math inline">\(X\)</span> (<span class="math inline">\(X = 1\)</span>) reduces <span class="math inline">\(\pi\)</span> to <span class="math inline">\(.4\)</span> thus the odds for <span class="math inline">\(X = 1\)</span> is 0.667.</p>
+<p>The odds-ratio is the ratio of the odds. Thus a person with <span class="math inline">\(X=1\)</span> has an odds 0.167 times smaller than that for <span class="math inline">\(X=0\)</span>.</p>
+</section><section id="the-other-link-functions" class="slide level2">
+<h1>The other link functions</h1>
+<p>Any transformation that maps probabilities into the real line could be used, as long as the transformation is one-to-one, continuous and differentiable.</p>
+<p>Suppose <span class="math inline">\(F(.)\)</span> is the cumulative distribution function of a r.v. defined on the real line, and write</p>
+<p><span class="math display">\[
+\pi_i = F(\eta_i)
+\]</span></p>
+<p>for <span class="math inline">\(-\infty &lt; \eta_i &lt; \infty\)</span>. Then</p>
+<p><span class="math display">\[
+\eta_i = F^{-1}(\pi_i)
+\]</span></p>
+<p>could be used as link function</p>
+</section><section id="latent-variable-formulation" class="slide level2">
+<h1>Latent variable formulation</h1>
+<p>Let <span class="math inline">\(Y_i\)</span> be a r.v. representing a binary response coded 0 or 1. <span class="math inline">\(Y_i\)</span> is the <em>manifest</em> response.</p>
+<p>Suppose that there is an unobservable continuous variable <span class="math inline">\(Y^*_i\)</span> such that <span class="math inline">\(Y_i\)</span> equals 1 iff <span class="math inline">\(Y^*_i\)</span> exceeds a threshold <span class="math inline">\(\zeta\)</span>. <span class="math inline">\(Y^*_i\)</span> is the <em>latent</em> response</p>
+<dl>
+<dt>Possible interpretation</dt>
+<dd><span class="math inline">\(Y_i\)</span> a binary choice such as purchasing or renting a home, while <span class="math inline">\(Y^*_i\)</span> is the difference in the utilities of purchasing and renting
+</dd>
+</dl>
+<p>Thus</p>
+<p><span class="math display">\[ 
+\pi_i = P(Y_i = 1) = P(Y^*_i &gt; \zeta)
+\]</span></p>
+</section><section id="latent-variable-formulation-1" class="slide level2">
+<h1>Latent variable formulation</h1>
+<p>Write</p>
+<p><span class="math display">\[Y^*_i = x_i^{T}\beta + U_i\]</span></p>
+<p>where <span class="math inline">\(U_i\)</span> is the error term with distribution with cdf <span class="math inline">\(F(u)\)</span>. Under this model,</p>
+<p><span class="math display">\[
+\begin{align}
+\pi_i &amp;= P(Y_i = 1)\\
+&amp;= P(U_i &gt; -\eta_i)\\
+&amp;= 1 - F(-\eta_i)
+\end{align}
+\]</span></p>
+<p>If the distribution of the error terms is symmetric around 0, <span class="math inline">\(\pi_i = F(\eta_i)\)</span>. This defines a GLM with Bernoulli response and link</p>
+<p><span class="math display">\[
+\eta_i = F^{-1}(\pi_i)
+\]</span></p>
+</section><section id="probit-model" class="slide level2">
+<h1>Probit model</h1>
+<p>Assume <span class="math inline">\(U \sim {\cal N}(0, 1)\)</span>. This leads to</p>
+<p><span class="math display">\[ 
+\pi_i = \Phi(\eta_i)
+\]</span></p>
+<p>where <span class="math inline">\(\Phi\)</span> is the standard normal c.d.f. The inverse transformation, which gives the linear predictor as a function of the probabilities</p>
+<p><span class="math display">\[
+\eta_i = \Phi^{-1}(\pi_i)
+\]</span> is called the <em>probit</em>.</p>
+<p>The <span class="math inline">\(\beta\)</span>’s are interpreted in units of standard deviation of the latent variable</p>
+</section><section id="complementary-log-log-transformation" class="slide level2">
+<h1>Complementary log-log transformation</h1>
+<p><span class="math display">\[ \eta_i = \log(1 - \log(1 - \pi_i)) \]</span></p>
+<p>which is the inverse of the cdf of the log-Weibull distribution, with cdf</p>
+<p><span class="math display">\[
+F(\eta_i) = 1 - e^{-e^{\eta_i}}
+\]</span></p>
+<p>The complementary log-log transformation has a direct interpretation in terms of hazard ratios, and thus has practical applications in terms of hazard models (see Survival models)</p>
+</section><section id="illustration" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>Challenger disaster example</strong></p>
+<p>In January 1986, the space shuttle Challenger exploded shortly after lunch.</p>
+<p>An investigation was launched shortly after and attention focused on rubber O-rings in the rocket boosters. At lower temperatures, rubber becomes more brittle and is a less effective sealant.</p>
+<p>At the time of launch, the temperature was 31<span class="math inline">\(^\circ\)</span>F (-.5<span class="math inline">\(^\circ\)</span>C).</p>
+<p>In the 23 previous missions, some evidence of damage was recorded for some O-rings.</p>
+<p>Could the failure have been predicted?</p>
+</section><section id="illustration-1" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>plasma: Erythrocyte sedimentation rate (ESR)</strong></p>
+<p>The erythrocyte sedimentation rate (ESR) is the rate at which red blood cells (erythrocytes) settle out of suspension in blood plasma, when measured under standard conditions. If the ESR increases when the level of certain proteins in the blood plasma rise in association with conditions such as rheumatic diseases, chronic infections and malignant diseases, its determination might be useful in screening blood samples taken from people suspected of suffering from one of the conditions mentioned. The absolute value of the ESR is not of great importance, rather it is whether it is less than 20mm/hr since lower values indicate a ‘healthy’ individual.</p>
+<p>The question of interest is whether there is any association between the probability of an ESR reading greater than 20mm/hr and the levels of the two plasma proteins. If there is not then the determination of ESR would not be useful for diagnostic purposes.</p>
+</section></section>
+<section><section id="count-data" class="titleslide slide level1"><h1>Count data</h1></section><section id="count-regression" class="slide level2">
+<h1>Count regression</h1>
+<p>When the response is a count (a positive integer), we can use a count regression model to explain this response in terms of the given predictors.</p>
+<p>We consider two distributions for counts:</p>
+<ul>
+<li>The Poisson</li>
+<li>The negative binomial</li>
+</ul>
+</section><section id="poisson-regression" class="slide level2">
+<h1>Poisson regression</h1>
+<p>If <span class="math inline">\(Y\)</span> is Poisson with mean <span class="math inline">\(\mu\)</span> then</p>
+<p><span class="math display">\[
+P(Y = y) = \frac{e^{-\mu}\mu^y}{y!}
+\]</span></p>
+<p>with <span class="math inline">\(\mu\)</span> &gt; 0.</p>
+<p>Then we can use the log link function such that</p>
+<p><span class="math display">\[ 
+\log \mu = \eta = x^{T}\beta
+\]</span></p>
+<p>In this model, <span class="math inline">\(\exp{\beta_j}\)</span> represents a multiplicative effect of the j-th predictor on the mean. Increasing <span class="math inline">\(x_j\)</span> by one unit multiplies the mean by a factor of <span class="math inline">\(\exp(\beta_j)\)</span>.</p>
+</section><section id="rate-models" class="slide level2">
+<h1>Rate models</h1>
+<p>Let</p>
+<ul>
+<li><span class="math inline">\(Y\)</span> be a count (infections, violent acts)</li>
+<li><span class="math inline">\(t\)</span> index of the time / space (days, neighbourhood)</li>
+</ul>
+<p>The sample rate of occurrence is <span class="math inline">\(Y/t\)</span> The expected value of the rate is</p>
+<p><span class="math display">\[
+{\text{E}}(Y/t) = \frac{1}{t}{\text{E}}(Y) = \frac{\mu}{t}
+\]</span></p>
+<p>The Poisson regression model for the expected rate is</p>
+<p><span class="math display">\[
+\begin{align}
+\log(\mu/t) &amp;= x^{T}\beta \\
+\log(\mu) = \log(t) + x^T\beta
+\end{align}
+\]</span></p>
+<p><span class="math inline">\(\log(t)\)</span> is known as <em>offset</em> and may be different for each <span class="math inline">\(i\)</span></p>
+</section><section id="overdispersion" class="slide level2">
+<h1>Overdispersion</h1>
+<p>One key feature of the Poisson distribution is that</p>
+<p><span class="math display">\[{\text{var}}Y = {\text{E}}Y = \mu.\]</span></p>
+<p>However, we often find data for which there is overdispersion, i.e., the variance is larger than the mean.</p>
+<p>In the context of count data, we could assume</p>
+<p><span class="math display">\[
+{\text{var}}Y = \phi{\text{E}}Y = \phi\mu.
+\]</span></p>
+<p>One would just need to correct the standard errors of the Poisson model using an estimate of <span class="math inline">\(\phi\)</span>. Only meaningful is the model is correct</p>
+</section><section id="negative-binomial-model" class="slide level2">
+<h1>Negative binomial model</h1>
+<p>An alternative approach is the negative binomial regression model.</p>
+<p>Suppose that the conditional distribution of <span class="math inline">\(Y\)</span> given an unobserved variable is Poisson with mean and variance <span class="math inline">\(\delta\mu\)</span>.</p>
+<p>In this model, the data would be Poisson if we could observe <span class="math inline">\(\delta\)</span>, but we don’t.</p>
+<ul>
+<li>Make some assumption about the distribution of <span class="math inline">\(\delta\)</span></li>
+<li>Integrate it out of the likelihood</li>
+</ul>
+</section><section id="negative-binomial-model-1" class="slide level2">
+<h1>Negative binomial model</h1>
+<p>It is convenient to assume that <span class="math inline">\(\delta\)</span> is gamma distributed with parameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span>. The distribution has mean <span class="math inline">\(\alpha/\beta\)</span> and variance <span class="math inline">\(\alpha/\beta^2\)</span>.</p>
+<p>Consider further <span class="math inline">\(\alpha = \beta = 1/\sigma^2\)</span>.</p>
+<p>The unconditional distribution of the outcome is then the negative binomial distribution.</p>
+<p>The negative binomial distribution with <span class="math inline">\(\alpha = \beta = 1/\sigma^2\)</span> has mean</p>
+<p><span class="math display">\[{\text{E}}Y = \mu\]</span></p>
+<p>and variance</p>
+<p><span class="math display">\[{\text{var}}Y = \mu(1 + \sigma^2\mu)\]</span></p>
+<p>If <span class="math inline">\(\sigma^2 = 0\)</span> there is no overdispersion</p>
+</section><section id="illustration-2" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>solder data</strong></p>
+<p>ATT ran an experiment varying 5 factors relevant to a wave-solderinr components on printed circuit boards.</p>
+<p>The response variable <code>skips</code> is a count of how many solder skips appeared to a visual inspection.</p>
+<p><strong>tb_real</strong></p>
+<p>Dataset holding information on outbreaks of tuberculosis in dairy and beef cattle, cervids and bison in Canada between 1985 and 1994.</p>
+<dl>
+<dt><code>reactors</code></dt>
+<dd>Numbers of reactors (A reactor animal is one that has shown a significant response to the tuberculin skin test) in a group
+</dd>
+<dt><code>par</code></dt>
+<dd>Animal days at risk in the group
+</dd>
+</dl>
+</section></section>
+<section><section id="multinomial-data" class="titleslide slide level1"><h1>Multinomial Data</h1></section><section id="multinomial-data-1" class="slide level2">
+<h1>Multinomial data</h1>
+<p>Consider a random variable <span class="math inline">\(Y_i\)</span> that may take one of several discrete values in <span class="math inline">\(1, 2, \dots, J\)</span>. Let</p>
+<p><span class="math display">\[
+\pi_{ij} = P(Y_i = j),
+\]</span></p>
+<p>and assume <span class="math inline">\(\sum_j \pi{ij} = 1\)</span>. Thus we have <span class="math inline">\(J - 1\)</span> parameters</p>
+</section><section id="multinomial-logit-model" class="slide level2">
+<h1>Multinomial logit model</h1>
+<p>The idea is to pick a reference category (baseline), calculate log-odds for all other categories relative to the baseline, and then let the log-odds be a linear function of the predictors.</p>
+<p>Pick <span class="math inline">\(J\)</span> as baseline category (as in SAS) and compute <span class="math inline">\(\pi_{i1}/\pi_{iJ}\)</span></p>
+<p>The multinomial logit model assumes that the log-odds of each response follow a linear model</p>
+<p><span class="math display">\[
+\eta_{ij} = \log\frac{\pi_{ij}}{\pi_{iJ}} = \alpha_j + x_i^T\beta_j
+\]</span></p>
+<p>The <span class="math inline">\(J - 1\)</span> multinomial logit equations contrast each category <span class="math inline">\(1, 2, \dots J-1\)</span> with category <span class="math inline">\(J\)</span>.</p>
+</section><section id="illustration-3" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>nes96 data set</strong></p>
+<p>The data contain a subset of the 1996 American National Election Study. We consider only the age, income and education of the respondants. The response variable is the party identification of the individual: Democrat, Independent or Republican.</p>
+</section><section id="models-for-ordinal-data" class="slide level2">
+<h1>Models for ordinal data</h1>
+<p>Let <span class="math inline">\(\pi_{ij} = P(Y_i = j)\)</span> and let <span class="math inline">\(\gamma_{ij}\)</span> be the corresponding cumulative probability</p>
+<p><span class="math display">\[
+\gamma_{ij} = P(Y_i \leq j).
+\]</span></p>
+<p>Thus <span class="math inline">\(\gamma_{ij} = \pi_{i1} + \pi_{i2} + \dots + \pi_{ij}\)</span>.</p>
+<p>We consider models of the form</p>
+<p><span class="math display">\[ 
+g(\gamma_{ij}) = \theta_j + x_i^T\beta,
+\]</span></p>
+<p>where <span class="math inline">\(\theta_j\)</span> is a constant representing baseline value of the transformed cumulative probability for category <span class="math inline">\(j\)</span>, and <span class="math inline">\(\beta\)</span> represents the effect of the covariates on the transformed cumulative probability</p>
+</section><section id="proportional-odds-model" class="slide level2">
+<h1>Proportional odds model</h1>
+<p>Extension of the logistic model that applies the logit transformation to the cumulative response probabilities</p>
+<p><span class="math display">\[
+\text{logit}(\gamma_{ij}) = \log \frac{\gamma_{ij}}{1 - \gamma_{ij}} =
+\theta_j + x_{i}^T\beta
+\]</span></p>
+<p>Exponentiating, we find that</p>
+<p><span class="math display">\[
+\frac{\gamma_{ij}}{1 - \gamma_{ij}} = \exp(\theta_j)\exp(x_i\beta)
+\]</span></p>
+<p>Thus <span class="math inline">\(\exp(\theta_j)\)</span> may be interpreted as a baseline odds of a response in category <span class="math inline">\(j\)</span> or below.</p>
+<p>The effect of the covariate <span class="math inline">\(x\)</span> is to raise or lower the odds of a response in category j or below by the factor <span class="math inline">\(\exp(\beta)\)</span>.</p>
+<p>Note that if a certain combination of covariate values doubles the odds of being in category 1, it also doubles the odds of being in category 2 or below, or in category 3 or below</p>
+</section><section id="ordered-probit-model" class="slide level2">
+<h1>Ordered probit model</h1>
+<p>The ordered probit model models the probit of the cumulative probabilities as a linear function of the covariates</p>
+<p><span class="math display">\[
+\Phi^{-1}(\gamma_{ij}) = \theta_j + x^T_i\beta.
+\]</span></p>
+</section><section id="illustration-4" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>CHFLS: Chinese Health and Family Life Survey</strong></p>
+<p>The Chinese Health and Family Life Survey sampled <span class="math inline">\(60\)</span> villages and urban neighbourhoods chosen in such a way as to represent the full geographical and socioeconomic range of contemporary China excluding Hong Kong and Tibet.</p>
+<p>Eighty-three individuals were chosen at random for each location from official registers of adults aged between <span class="math inline">\(20\)</span> and <span class="math inline">\(64\)</span> years to target a sample of <span class="math inline">\(5000\)</span> individuals in total.</p>
+<p>Here, we restrict our attention to women with current male partners and the following variables:</p>
+</section><section id="illustration-5" class="slide level2">
+<h1>Illustration</h1>
+<dl>
+<dt><code>R_edu</code></dt>
+<dd>level of education of the responding woman,
+</dd>
+<dt><code>R_income</code></dt>
+<dd>monthly income (in yuan) of the responding woman,
+</dd>
+<dt><code>R_health</code></dt>
+<dd>health status of the responding woman in the last year,
+</dd>
+<dt><code>R_happy</code></dt>
+<dd>how happy was the responding woman in the last year,
+</dd>
+<dt><code>A_edu</code></dt>
+<dd>level of education of the woman’s partner,
+</dd>
+<dt><code>A_income</code></dt>
+<dd>monthly income (in yuan) of the woman’s partner.
+</dd>
+</dl>
+</section></section>
+<section><section id="quasi-likelihood" class="titleslide slide level1"><h1>Quasi-likelihood</h1></section><section id="quasi-likelihood-1" class="slide level2">
+<h1>Quasi-likelihood</h1>
+<p>Suppose that we are able to specify the link and variance functions of the model for some data.</p>
+<p>But we have no strong idea about the distributional form of the response.</p>
+<p>We also know that the important part of the model specification is the link and variance; the outcome is less sensitive to the distribution of the response.</p>
+<p>However, we need some distributional assumption to compute a likelihood, deviance for making inference.</p>
+<p>→ We need a substitute of the likelihood that can be computed without distributional assumption</p>
+</section><section id="quasi-likelihood-2" class="slide level2">
+<h1>Quasi-likelihood</h1>
+<p>Let <span class="math inline">\(Y_i\)</span> have mean <span class="math inline">\(\mu_i\)</span> and variance <span class="math inline">\(\phi V(\mu_i)\)</span>. Assume the <span class="math inline">\(Y_i\)</span> to be independent.</p>
+<p>Define a score <span class="math inline">\(U_i\)</span></p>
+<p><span class="math display">\[
+U_i = \frac{Y_i - \mu_i}{\phi V(\mu_i)}.
+\]</span></p>
+<p>One can show that <span class="math inline">\({\text{E}}U_i\)</span> = 0 and <span class="math inline">\({\text{var}}U_i = 1 / \phi V(\mu_i)\)</span>. Actually <span class="math inline">\(U_i\)</span> and the derivative of the log-likelihood share the same properties, so we can use <span class="math inline">\(U\)</span> instead.</p>
+<p>Define</p>
+<p><span class="math display">\[Q_i = \int_{y_i}^{\mu_i} \frac{y_i - t}{\phi V(t)}dt\]</span></p>
+<p>and <span class="math inline">\(Q = \sum_i Q_i\)</span>.</p>
+<p><span class="math inline">\(Q\)</span> behaves like a log-likelihood and shares the same asymptotic properties</p>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

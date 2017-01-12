@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Recursive Partitioning</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Recursive Partitioning</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="introduction-1" class="slide level2">
+<h1>Introduction</h1>
+<p>A particular kind of nonlinear predictive model: <strong>prediction trees</strong>.</p>
+<p>2 varieties:</p>
+<ul>
+<li><em>regression trees</em></li>
+<li><em>classification trees</em></li>
+</ul>
+<p>Then we’ll look at ways to combine multiple trees</p>
+</section></section>
+<section><section id="prediction-trees" class="titleslide slide level1"><h1>Prediction trees</h1></section><section id="prediction-trees-1" class="slide level2">
+<h1>Prediction trees</h1>
+<p>Tree-based methods aim at predicting <span class="math inline">\(y\)</span> from a feature vector <span class="math inline">\(x \in \mathbb{R}^p\)</span></p>
+<ol type="1">
+<li>Divide up the feature space into rectangles</li>
+<li>Fit a very simple model in each rectangle</li>
+</ol>
+<p>This works both when <span class="math inline">\(y\)</span> is discrete and continuous, i.e., both for <em>classification</em> and <em>regression</em></p>
+</section><section id="prediction-trees-2" class="slide level2">
+<h1>Prediction trees</h1>
+<p>Consider a regression problem with a continuous response <span class="math inline">\(Y\)</span> and explanatory variables <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span>.</p>
+<ol type="1">
+<li>Split the space into 2 regions</li>
+<li>Model the response by the mean of <span class="math inline">\(Y\)</span> in each region. We choose the variable (<span class="math inline">\(X_1\)</span> or <span class="math inline">\(X_2\)</span>) and split-point that achieve the best fit</li>
+<li>One or both of these regions are split into two more regions</li>
+<li>Continue until some stopping rule is applied</li>
+</ol>
+</section><section id="prediction-trees-3" class="slide level2">
+<h1>Prediction trees</h1>
+<figure>
+<img src="trees_partition.png" />
+</figure>
+</section><section id="prediction-trees-4" class="slide level2">
+<h1>Prediction trees</h1>
+<p>The result of this process is a partition into regions <span class="math inline">\(R_1, R_2, \dots, R_5\)</span>.</p>
+<p>The corresponding regression model predicts <span class="math inline">\(Y\)</span> with a constant <span class="math inline">\(c_m\)</span> in Region <span class="math inline">\(R_m\)</span>,</p>
+<p><span class="math inline">\(\hat{f}(X) = \sum_{i = 1}^5 c_m{\mathbf{I}}\{(X_1, X_2) \in R_m\}\)</span></p>
+<p>This model can be represented by a binary tree</p>
+</section><section id="prediction-trees-5" class="slide level2">
+<h1>Prediction trees</h1>
+<figure>
+<img src="trees_tree.png" />
+</figure>
+</section><section id="prediction-trees-6" class="slide level2">
+<h1>Prediction trees</h1>
+<figure>
+<img src="trees_classification.png" />
+</figure>
+</section><section id="regression-trees" class="slide level2">
+<h1>Regression trees</h1>
+<p>The data consist of p explanatory variables and an outcome for <span class="math inline">\(n\)</span> individuals</p>
+<ul>
+<li><span class="math inline">\((x_i, y_i)\)</span> for <span class="math inline">\(i = 1, \dots, n\)</span></li>
+<li><span class="math inline">\(x_i = (x_{i1}, \dots, x_{ip})\)</span></li>
+</ul>
+<p>The algorithm needs to automatically decide on the splitting variables and split points.</p>
+<p>Suppose that we have a partition into <span class="math inline">\(M\)</span> regions <span class="math inline">\(R_1, R_2, \dots, R_M\)</span>, and we model the response as a constant <span class="math inline">\(c_m\)</span> in each region</p>
+<p><span class="math display">\[f(x) = \sum_{m = 1}^M c_m{\mathbf{I}}(x \in R_m)\]</span></p>
+</section><section id="regression-trees-1" class="slide level2">
+<h1>Regression trees</h1>
+<p>Using the <em>sum of squares</em></p>
+<p><span class="math display">\[\sum (y_i - f(x_i))^2\]</span></p>
+<p>as minimisation criterion, the best <span class="math inline">\(\hat{c}_m\)</span> is the average of <span class="math inline">\(y_i\)</span> in region <span class="math inline">\(R_m\)</span></p>
+<p><span class="math display">\[\hat{c}_m = \frac{1}{n_m} \sum_{x_i \in R_m} y_i\]</span></p>
+<p>But finding the best binary partition in terms of minimum sum of squares is generally computationally infeasible.</p>
+</section><section id="regression-trees-2" class="slide level2">
+<h1>Regression trees</h1>
+<p>Instead we use a <em>greedy algorithm</em>:</p>
+<p>Starting with all the data, consider a splitting variable <span class="math inline">\(j\)</span> and split point <span class="math inline">\(s\)</span>, and define the pair of half-planes</p>
+<p><span class="math display">\[
+R_1(j, s) = \{X|X_j \leq s\} \quad \text{and} \quad R_2(j, s) =
+\{X|X_j &gt; s\}
+\]</span></p>
+<p>Then seek the splitting variable <span class="math inline">\(j\)</span> and split point <span class="math inline">\(s\)</span> that solve</p>
+<p><span class="math display">\[ \min_{j, s}
+\left[\min_{c_1} \sum_{x_i \in R_1(j, s)} (y_i - c_1)^2 +
+\min_{c_2} \sum_{x_i \in R_2(j, s)} (y_i - c_2)^2\right]
+\]</span></p>
+<p>For any choice <span class="math inline">\(j\)</span> and <span class="math inline">\(s\)</span>, the inner minimisation is solved by</p>
+<p><span class="math display">\[
+\hat{c}_1 = \frac{1}{n_1} \sum_{x_i \in R_1} y_i \quad \text{and}
+\quad \hat{c}_2 = \frac{1}{n_2} \sum_{x_i \in R_2} y_i
+\]</span></p>
+<p>Having found the best split, we partition the data into the two resulting regions and repeat the process in each of the two regions …</p>
+</section><section id="regression-trees-3" class="slide level2">
+<h1>Regression trees</h1>
+<p><strong>How large should the tree be?</strong></p>
+<p>Too large, we may overfit the data (e.g., 1 data point per region is useless).</p>
+<p>Too small, we might miss some important structure in the data</p>
+<p>→ Tree size is a tuning parameter governing the model’s complexity, and the optimal tree size should be chosen from the data</p>
+<ul>
+<li>One possibility would be to split the data only if a further split decreases the sum of squares more than a prespecified threshold</li>
+<li>Too short sighted: a seemingly worthless split might lead to a very good split below it</li>
+</ul>
+</section><section id="regression-trees-4" class="slide level2">
+<h1>Regression trees</h1>
+<p><strong>Pruning</strong></p>
+<ol type="1">
+<li><p>Grow a large tree <span class="math inline">\(T_0\)</span>, stopping the splitting process only when some minimum node size is reached</p></li>
+<li><p><em>Prune</em> this large tree using <em>cost-complexity pruning</em></p></li>
+</ol>
+<p>Define a subtree <span class="math inline">\(T \subset T_0\)</span> that can be obtained by pruning <span class="math inline">\(T_0\)</span></p>
+<p>Let <span class="math inline">\(m\)</span> be the index of the terminal nodes, with node <span class="math inline">\(m\)</span> representing region <span class="math inline">\(R_m\)</span>.</p>
+<p>Let <span class="math inline">\(\lvert T \rvert\)</span> denote the number of terminal nodes in <span class="math inline">\(T\)</span></p>
+</section><section id="regression-trees-5" class="slide level2">
+<h1>Regression trees</h1>
+<p>Let</p>
+<p><span class="math display">\[
+\begin{align}
+N_m &amp;= \#\{x_i \in R_m\}, \\
+\hat{c}_m &amp;= \frac{1}{n_m} \sum_{x_i \in R_m} y_i, \\
+Q_m(T) &amp;= \frac{1}{n_m} \sum_{x_i \in R_m} (y_i - \hat{c}_m)^2
+\end{align}
+\]</span></p>
+<p>The cost complexity criterion is defined as</p>
+<p><span class="math display">\[
+C_\alpha(T) = \sum_{m = 1}^{\lvert T \rvert} N_mQ_m(T) + \alpha\lvert
+T \rvert
+\]</span></p>
+<p>The tuning parameter <span class="math inline">\(\alpha \geq 0\)</span> governs the trade-off between tree-size and goodness-of-fit.</p>
+<p><span class="math inline">\(\alpha\)</span> chosen via a validation set or <strong>cross-validation</strong></p>
+</section><section id="k-fold-cross-validation" class="slide level2">
+<h1><span class="math inline">\(k\)</span>-fold Cross-validation</h1>
+<p>Cross-validation is a widely used method for estimating prediction error</p>
+<ul>
+<li>Randomly divide the set of observations into <span class="math inline">\(k\)</span> groups or <em>folds</em> of approximately equal size</li>
+<li>The first fold is treated as validation set while the tree is fitted on the remaining <span class="math inline">\(k - 1\)</span> folds</li>
+<li>Compute the prediction error in the held-out fold using (in our case)</li>
+</ul>
+<p><span class="math display">\[L(Y^{-k}, \hat{f}^{-k}(X)) = (y^{-k} - \hat{f}^{-k}(x))^2\]</span></p>
+<ul>
+<li><p>The procedure is repeated <span class="math inline">\(k\)</span>-times resulting in <span class="math inline">\(k\)</span> estimates of the test error</p></li>
+<li><p>The <span class="math inline">\(k\)</span>-fold CV estimate is then</p></li>
+</ul>
+<p><span class="math display">\[
+CV_{(k)} = \frac{1}{k}\sum_{j = 1}^k L(Y^{-j}, \hat{f}^{-j}(X))
+\]</span></p>
+<p><span class="math inline">\(k\)</span> is typically set to 5 or 10.</p>
+</section><section id="building-a-regression-tree" class="slide level2">
+<h1>Building a regression tree</h1>
+<ol type="1">
+<li>Use recursive binary splitting to grow a large tree on the training data, stopping only when each terminal node has fewer than some minimum number of observations</li>
+<li>Apply cost complexity pruning to the large tree in order to obtain a sequence of best subtrees as a function of <span class="math inline">\(\alpha\)</span></li>
+<li><p>Use <span class="math inline">\(k\)</span>-fold cross-validation to chose <span class="math inline">\(\alpha\)</span>, i.e., divide the data into <span class="math inline">\(K\)</span> folds. For each <span class="math inline">\(k = 1, \dots, K\)</span></p>
+<ol type="1">
+<li>Repeat 1. and 2. on all but the <span class="math inline">\(k\)</span>-th fold</li>
+<li>Evaluate the MSE in the left-out fold as a function of <span class="math inline">\(\alpha\)</span>.</li>
+</ol></li>
+</ol>
+<p>Average the results for each value of <span class="math inline">\(\alpha\)</span>, and pick <span class="math inline">\(\alpha\)</span> to minimise the average error</p>
+<ol start="4" type="1">
+<li>Return the subtree from Step 2 that corresponds to the chosen value of <span class="math inline">\(\alpha\)</span></li>
+</ol>
+</section><section id="classification-trees" class="slide level2">
+<h1>Classification trees</h1>
+<p>Now the target is a classification outcome taking values <span class="math inline">\(1, 2, 3, \dots, K\)</span></p>
+<p>The only changes needed in the algorithm is in the splitting criterion and how to prune the tree</p>
+<p>Let</p>
+<p><span class="math display">\[
+\hat{p}_{mk} = \frac{1}{n_m} \sum_{x_i \in R_m} {\mathbf{I}}(y_i = k)
+\]</span></p>
+<p>the proportion of class <span class="math inline">\(k\)</span> observations in node <span class="math inline">\(m\)</span>.</p>
+<p>We classify the observations in node <span class="math inline">\(m\)</span> to class</p>
+<p><span class="math display">\[k(m) = \operatorname*{arg\,max}_k \hat{p}_{mk}\]</span></p>
+</section><section id="classification-trees-1" class="slide level2">
+<h1>Classification trees</h1>
+<p>Different measures of node impurity can be defined</p>
+<ul>
+<li><em>Missclassification error:</em> <span class="math inline">\(\frac{1}{n_m}\sum_{i \in R_m} {\mathbf{I}}(y_i  \neq k(m)) = 1 - \hat{p}_{mk}\)</span></li>
+<li><em>Gini index:</em> <span class="math inline">\(\sum_{k \neq k&#39;} \hat{p}_{mk}\hat{p}_{mk&#39;} = \sum_{k =  1}^K \hat{p}_{mk}(1 - \hat{p}_{mk})\)</span></li>
+<li><em>Cross-entropy or deviance:</em> <span class="math inline">\(-\sum_{k=1}^K \hat{p}_{mk}\log\hat{p}_{mk}\)</span></li>
+</ul>
+<p>The latter 2 have the advantage that they are differentiable, hence more amenable to numerical optimisation</p>
+</section><section id="illustration" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>Forbes2000</strong></p>
+<p>The <code>Forbes2000</code> contains the list of the world’s biggest industrial companies. Here, our interest is to construct a model explaining the profit of a company based on assets, sales and the market value.</p>
+<pre class="r"><code>data(&quot;Forbes2000&quot;, package = &quot;HSAUR3&quot;)
+head(Forbes2000)</code></pre>
+<pre><code>  rank                name        country             category  sales
+1    1           Citigroup  United States              Banking  94.71
+2    2    General Electric  United States        Conglomerates 134.19
+3    3 American Intl Group  United States            Insurance  76.66
+4    4          ExxonMobil  United States Oil &amp; gas operations 222.88
+5    5                  BP United Kingdom Oil &amp; gas operations 232.57
+6    6     Bank of America  United States              Banking  49.01
+  profits  assets marketvalue
+1   17.85 1264.03      255.30
+2   15.59  626.93      328.54
+3    6.46  647.66      194.87
+4   20.96  166.99      277.02
+5   10.27  177.57      173.54
+6   10.81  736.45      117.55</code></pre>
+</section><section id="illustration-forbes" class="slide level2">
+<h1>Illustration — Forbes</h1>
+<pre class="r"><code>library(&quot;rpart&quot;, quietly = TRUE)
+Forbes2000 &lt;- subset(Forbes2000, !is.na(profits))
+fm &lt;- profits ~ assets + marketvalue + sales
+forbes_rpart &lt;- rpart(fm, data = Forbes2000)</code></pre>
+</section><section id="illustration-forbes-1" class="slide level2">
+<h1>Illustration — Forbes</h1>
+<ul>
+<li>Plot tree</li>
+</ul>
+<pre class="r"><code>library(partykit, quietly = TRUE)
+plot(as.party(forbes_rpart))</code></pre>
+<p><img src="graphics/forbes_tree-1.svg" width="800px" height="400px" /></p>
+</section><section id="illustration-forbes-2" class="slide level2">
+<h1>Illustration — Forbes</h1>
+<ul>
+<li>Complexity parameter</li>
+</ul>
+<pre class="r"><code>print(forbes_rpart$cptable)</code></pre>
+<pre><code>          CP nsplit rel error    xerror      xstd
+1 0.23748446      0 1.0000000 1.0012286 0.1947829
+2 0.04600397      1 0.7625155 0.8042608 0.1893762
+3 0.04258786      2 0.7165116 0.8162056 0.2060592
+4 0.02030891      3 0.6739237 0.7343190 0.1970225
+5 0.01854336      4 0.6536148 0.7727965 0.1977633
+6 0.01102304      5 0.6350714 0.8248992 0.2109600
+7 0.01076006      6 0.6240484 0.8194330 0.2112987
+8 0.01000000      7 0.6132883 0.8210051 0.2136873</code></pre>
+<pre class="r"><code>plotcp(forbes_rpart)</code></pre>
+<p><img src="graphics/forbes_cp-1.svg" width="300px" height="300px" /></p>
+</section><section id="illustration-forbes-3" class="slide level2">
+<h1>Illustration — Forbes</h1>
+<pre class="r"><code>opt &lt;- which.min(forbes_rpart$cptable[,&quot;xerror&quot;])
+cp &lt;- forbes_rpart$cptable[opt, &quot;CP&quot;]
+forbes_prune &lt;- prune(forbes_rpart, cp = cp)
+plot(as.party(forbes_prune))</code></pre>
+<p><img src="graphics/forbes_pruned-1.svg" width="500px" height="250px" /></p>
+</section><section id="illustration-glaucoma" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<p>For <span class="math inline">\(196\)</span> people, <span class="math inline">\(98\)</span> patients suffering glaucoma and <span class="math inline">\(98\)</span> controls which have been matched by age and sex, <span class="math inline">\(62\)</span> numeric variables derived from the laser scanning images are available.</p>
+<p>The variables describe the morphology of the optic nerve head, i.e., measures of volumes and areas in certain regions of the eye background. Those regions have been manually outlined by a physician. Our aim is to construct a prediction model which is able to decide whether an eye is affected by glaucomateous changes based on the laser image data.</p>
+<p>Here, we are primarily interested in the construction of a predictor. The relationship between the <span class="math inline">\(62\)</span> covariates and the glaucoma status itself is not very interesting. We start with a large initial tree and prune back branches according to the cross-validation criterion.</p>
+</section><section id="illustration-glaucoma-1" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<pre class="r"><code>data(&quot;GlaucomaM&quot;, package = &quot;TH.data&quot;)
+set.seed(290875)
+glaucoma_rpart &lt;- rpart(Class ~ ., data = GlaucomaM,
+              control = rpart.control(minsplit = 2, xval = 100))
+glaucoma_rpart$cptable</code></pre>
+<pre><code>          CP nsplit  rel error    xerror       xstd
+1 0.65306122      0 1.00000000 1.5306122 0.06054391
+2 0.07142857      1 0.34693878 0.3877551 0.05647630
+3 0.04081633      2 0.27551020 0.3571429 0.05471329
+4 0.03061224      3 0.23469388 0.4081633 0.05757556
+5 0.02551020      4 0.20408163 0.4489796 0.05960655
+6 0.02040816      6 0.15306122 0.4591837 0.06008148
+7 0.01020408      9 0.09183673 0.4897959 0.06143238
+8 0.01000000     16 0.02040816 0.5510204 0.06382443</code></pre>
+<pre class="r"><code>opt &lt;- which.min(glaucoma_rpart$cptable[,&quot;xerror&quot;])
+cp &lt;- glaucoma_rpart$cptable[opt, &quot;CP&quot;]
+glaucoma_prune &lt;- prune(glaucoma_rpart, cp = cp)</code></pre>
+</section><section id="illustration-glaucoma-2" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<pre class="r"><code>plot(as.party(glaucoma_prune))</code></pre>
+<p><img src="graphics/glau_tree-1.svg" width="800px" height="400px" /></p>
+</section><section id="illustration-glaucoma-3" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<p><strong>Instability of trees</strong></p>
+<pre class="r"><code>nsplitopt &lt;- vector(mode = &quot;integer&quot;, length = 25)
+for (i in 1:length(nsplitopt)) {
+    cp &lt;- rpart(Class ~ ., data = GlaucomaM)$cptable
+    nsplitopt[i] &lt;- cp[which.min(cp[,&quot;xerror&quot;]), 
+        &quot;nsplit&quot;]
+}
+table(nsplitopt)</code></pre>
+<pre><code>nsplitopt
+ 1  2  5 
+14  7  4 </code></pre>
+</section><section id="summary" class="slide level2">
+<h1>Summary</h1>
+<p>Trees are easy to interpret</p>
+<p>but have a high variance</p>
+</section></section>
+<section><section id="bagging" class="titleslide slide level1"><h1>Bagging</h1></section><section id="bootstrap" class="slide level2">
+<h1>Bootstrap</h1>
+<p>The <em>bootstrap</em> is a widely applicable and extremely powerful statistical tool that can be used to quantify the uncertainty associated with a given estimator or statistical learning method.</p>
+<p>Suppose that a r.v <span class="math inline">\(Y\)</span> comes from a c.d.f <span class="math inline">\(F(y) = {\text{Pr}}(Y \leq y)\)</span> and that we have a sample of size <span class="math inline">\(n\)</span> coming from this unknown distribution.</p>
+<p>As <span class="math inline">\(F\)</span> is unknown we can’t do any derivation analytically → Simulate! But we don’t know <span class="math inline">\(F\)</span></p>
+<p><span class="math inline">\(F\)</span> can be estimated from the empirical c.d.f</p>
+<p><span class="math display">\[F_n(y) = \frac{1}{n}\sum_{i = 1}^n {\mathbf{I}}(Y_i \leq y).\]</span></p>
+<p>Now pretend that <span class="math inline">\(F_n(y)\)</span> is the original population distribution <span class="math inline">\(F(y)\)</span>.</p>
+<p>Sampling from <span class="math inline">\(F_n\)</span> is equivalent to sampling with replacement from the observed data <span class="math inline">\(Y_1, Y_2, \dots, Y_n\)</span></p>
+</section><section id="bootstrap-1" class="slide level2">
+<h1>Bootstrap</h1>
+<ul>
+<li>Take <span class="math inline">\(B\)</span> samples of size <span class="math inline">\(n\)</span> with replacement
+<ul>
+<li>With <span class="math inline">\(B\)</span> chosen such that the summary measure of the individual statistics is nearly as good as taking <span class="math inline">\(B = \infty\)</span></li>
+</ul></li>
+<li>Compute your statistic <span class="math inline">\(T_b\)</span> on each <em>bootstrapped sample</em><br />
+</li>
+<li>Summarise, e.g.,</li>
+</ul>
+<p><span class="math display">\[
+\widehat{{\text{var}}}(T) = \frac{1}{B - 1} \sum_{b = 1}^B (T_b - \bar{T})^2
+\]</span></p>
+<p>with <span class="math inline">\(\bar{T} = 1/B \sum_b T_b\)</span></p>
+</section><section id="bagging-1" class="slide level2">
+<h1>Bagging</h1>
+<p>Consider we fit a model to the training data <span class="math inline">\({\mathbf{Z}}= \{(x_1, y_1), \dots, (x_n, y_n)\}\)</span> and obtain the prediction <span class="math inline">\(\hat{f}(x)\)</span> for input <span class="math inline">\(x\)</span>.</p>
+<p>Bootstrap aggregation or <em>bagging</em> averages this prediction over a collection of bootstrap samples</p>
+<p>→ Reduction in variance</p>
+</section><section id="bagging-2" class="slide level2">
+<h1>Bagging</h1>
+<p>For each bootstrap sample <span class="math inline">\({\mathbf{Z}}^{*b},\, b = 1, 2, \dots, B\)</span>, fit the model and obtain prediction <span class="math inline">\(\hat{f}^{*b}\)</span>.</p>
+<p>The bagging estimate is defined as</p>
+<p><span class="math display">\[
+\hat{f}_{\text{bag}}(x) = \frac{1}{B} \sum_{b = 1}^B \hat{f}^{*b}
+\]</span></p>
+</section></section>
+<section><section id="random-forest" class="titleslide slide level1"><h1>Random Forest</h1></section><section id="motivation" class="slide level2">
+<h1>Motivation</h1>
+<p>The idea of bagging was to average many noisy but unbiased models, and thus reduce the variance</p>
+<p>Each tree generated in bagging is i.d.</p>
+<ul>
+<li>The bias of bagged trees is the same as that of the individual trees</li>
+<li>The variance of the average (with positive pairwise correlation <span class="math inline">\(\rho\)</span>) is</li>
+</ul>
+<p><span class="math display">\[\rho\sigma^2 + \frac{1 - \rho}{B}\sigma^2\]</span></p>
+<p>As <span class="math inline">\(B\)</span> increases, the second term disappears but the correlation of bagged trees limits the benefits of averaging.</p>
+<p>→ The idea of <em>random forest</em> is to “de-correlate” the trees through random selection of the input variables</p>
+</section><section id="random-forest-algorithm" class="slide level2">
+<h1>Random Forest Algorithm</h1>
+<ol type="1">
+<li><p>For <span class="math inline">\(b = 1\)</span> to <span class="math inline">\(B\)</span>:</p>
+<ol type="1">
+<li>Draw a bootstrap sample <span class="math inline">\({\mathbf{Z}}^*\)</span> of size <span class="math inline">\(n\)</span> from the data</li>
+<li><p>Grow a random-forest tree <span class="math inline">\(T_b\)</span> to the bootstrapped data until the minimum node size <span class="math inline">\(n_{\min}\)</span> is reached by repeating the following steps</p>
+<ol type="1">
+<li>Select <span class="math inline">\(m\)</span> variables at random from the <span class="math inline">\(p\)</span> variables</li>
+<li>Pick the best variable/split-point among the <span class="math inline">\(m\)</span></li>
+<li>Split the node into two daughter nodes</li>
+</ol></li>
+</ol></li>
+<li><p>Output the ensemble of trees <span class="math inline">\(\{T_b\}^B_1\)</span></p></li>
+</ol>
+<p>To make a prediction at a new point <span class="math inline">\(x\)</span>:</p>
+<ul>
+<li><p><em>regression:</em> <span class="math inline">\(\hat{f}_{\text{rf}}^B(x) = \frac{1}{B}\sum_{b=1}^B T_b(x)\)</span></p></li>
+<li><p><em>classification:</em> Let <span class="math inline">\(\hat{C}_b(x)\)</span> be the class prediction of the <span class="math inline">\(b\)</span>-th random-forest tree. Then <span class="math inline">\(\hat{C}_{\text{rf}}^B(x) =\)</span> <em>majority vote</em> <span class="math inline">\(\{\hat{C}_{\text{rf}}^B(x)\}_1^B\)</span></p></li>
+</ul>
+</section><section id="choice-of-m" class="slide level2">
+<h1>Choice of <span class="math inline">\(m\)</span></h1>
+<p>The inventors of random forest make the following recommendations</p>
+<ul>
+<li>For classification, the default value for <span class="math inline">\(m\)</span> is <span class="math inline">\(\lfloor \sqrt{p}  \rfloor\)</span> and the minimum node size is one</li>
+<li>For regression, the default value for <span class="math inline">\(m\)</span> is <span class="math inline">\(\lfloor p/3 \rfloor\)</span> and the minimum node size is five</li>
+</ul>
+<p>In practice, <span class="math inline">\(m\)</span> should be treated as a tuning parameter</p>
+</section><section id="out-of-bag-samples" class="slide level2">
+<h1>Out-of-bag Samples</h1>
+<p>An important feature of random forests is its use of <em>out-of-bag</em> (OOB) samples:</p>
+<ul>
+<li>On average, each bootstrapped tree makes use of around two-third of the observations. The remaining 1/3 of the observations not used to fit a given tree are called <em>out-of-bag</em> observations</li>
+<li>For each observation <span class="math inline">\(z_i = (x_i, y_i)\)</span>, construct its random forest predictor by averaging <strong>only</strong> those trees corresponding to bootstrap samples in which <span class="math inline">\(z_i\)</span> <strong>did not</strong> appear</li>
+</ul>
+<p>An OOB error estimate is almost the same as that obtained by <span class="math inline">\(K\)</span>-fold cross-validation.</p>
+<p>No need for separate test data</p>
+</section><section id="interpretation" class="slide level2">
+<h1>Interpretation</h1>
+<p>Simple trees are easy to interpret. The entire model can be represented by a single graphic</p>
+<p>Random forest and bagging loose this important feature and must be interpreted in different ways</p>
+</section><section id="variable-importance" class="slide level2">
+<h1>Variable importance</h1>
+<p>For a single decision tree, the following measure can be used to compute a relative importance of a predictor <span class="math inline">\(X_l\)</span></p>
+<p><span class="math display">\[{\cal I}_l^2(T) = \sum_{j = 1}^{J-1} \hat{i}_t^2{\mathbf{I}}(v(t) = l),\]</span></p>
+<ul>
+<li>the sum is over the <span class="math inline">\(J - 1\)</span> internal nodes of the tree</li>
+<li>At each node <span class="math inline">\(t\)</span>, one of the input variable <span class="math inline">\(X_{v(t)}\)</span> is used to partition the region</li>
+<li>The particular variable chosen is the one that gives maximal estimated improvement <span class="math inline">\(\hat{i}_t^2\)</span> in squared error risk (or Gini index, …)</li>
+</ul>
+<p>The squared relative importance of variable <span class="math inline">\(X_l\)</span> is the sum of such squared improvements over all internal nodes for which it was chosen as the splitting variable</p>
+<p>For bagging and random forests, this measure is averaged over the trees</p>
+<p><span class="math display">\[{\cal I}_l^2 = \frac{1}{B}\sum_{b=1}^B {\cal I}_l^2(T_b)\]</span></p>
+</section><section id="illustration-glaucoma-4" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<ul>
+<li>Bagging. It’s a random forest without random selection of the predictors</li>
+</ul>
+<pre class="r"><code>(glau_bag &lt;- randomForest(Class ~ ., GlaucomaM, mtry = ncol(GlaucomaM) - 1, importance = TRUE))</code></pre>
+<pre><code>
+Call:
+ randomForest(formula = Class ~ ., data = GlaucomaM, mtry = ncol(GlaucomaM) -      1, importance = TRUE) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 62
+
+        OOB estimate of  error rate: 15.82%
+Confusion matrix:
+         glaucoma normal class.error
+glaucoma       78     20   0.2040816
+normal         11     87   0.1122449</code></pre>
+</section><section id="illustration-glaucoma-5" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<ul>
+<li>Random forest</li>
+</ul>
+<pre class="r"><code>(glau_rf &lt;- randomForest(Class ~ ., GlaucomaM, mtry = floor(sqrt(ncol(GlaucomaM) - 1)), importance = TRUE))</code></pre>
+<pre><code>
+Call:
+ randomForest(formula = Class ~ ., data = GlaucomaM, mtry = floor(sqrt(ncol(GlaucomaM) -      1)), importance = TRUE) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 7
+
+        OOB estimate of  error rate: 13.78%
+Confusion matrix:
+         glaucoma normal class.error
+glaucoma       82     16   0.1632653
+normal         11     87   0.1122449</code></pre>
+</section><section id="illustration-glaucoma-6" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<p>Find <span class="math inline">\(mtry\)</span> through cross-validation</p>
+<pre class="r"><code>set.seed(434)
+mtry_find_glau &lt;- rfcv(GlaucomaM[, -ncol(GlaucomaM)], GlaucomaM[, ncol(GlaucomaM)],
+                       mtry = function(p) max(p/2, 1), step = 0.7)
+
+plot(mtry_find_glau$n.var, mtry_find_glau$error.cv, type = &quot;p&quot;, cex = 2)
+lines(mtry_find_glau$n.var, mtry_find_glau$error.cv)</code></pre>
+<p><img src="graphics/error_cv-1.svg" width="400px" height="400px" /></p>
+</section><section id="illustration-glaucoma-7" class="slide level2">
+<h1>Illustration — Glaucoma</h1>
+<pre class="r"><code>rf_glau_ &lt;- randomForest(Class ~ ., GlaucomaM,
+                         mtry = mtry_find_glau$n.var[which.min(mtry_find_glau$error.cv)],
+                         importance = TRUE)
+
+varImpPlot(rf_glau_, type = 2)</code></pre>
+<p><img src="graphics/top_tree_plus_vi-1.svg" width="400px" height="400px" /></p>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

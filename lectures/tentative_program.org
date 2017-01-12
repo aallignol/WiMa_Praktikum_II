@@ -1,0 +1,20 @@
+#+TITLE: Tentative Program
+#+AUTHOR: Arthur Allignol
+
+|      Date | Title                                                                |
+|-----------+----------------------------------------------------------------------|
+| 14.4.2016 | Introduction to R/SAS and reproducible research                      |
+| 21.4.2016 | Data management in R                                                 |
+| 28.4.2016 | Data management in SAS / Graphics in R                               |
+|  5.5.2016 |                                                                      |
+| 12.5.2016 | Graphics in R/ Simple inference, parametric and non-parametric tests |
+| 19.5.2016 |                                                                      |
+| 26.5.2016 |                                                                      |
+|  2.6.2016 | Linear regression                                                    |
+|  9.6.2016 | Generalized linear model                                             |
+| 16.6.2016 | Mixed models                                                         |
+| 23.6.2016 | Survival                                                             |
+| 30.6.2016 | Recursive partitioning                                               |
+|  7.7.2016 | Variable selection                                                   |
+| 14.7.2016 | Missing values                                                       |
+ 

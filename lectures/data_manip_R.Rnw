@@ -1,0 +1,1370 @@
+% -*- mode: noweb; ess-noweb-default-code-mode: R-mode; -*-
+\documentclass[paper=screen,mathserif]{beamer}
+
+\usetheme{CambridgeUS} 
+\useinnertheme{circles}
+\useoutertheme[footline=authortitle,subsection = false]{miniframes}
+\setbeamercolor{palette tertiary}{fg=white, bg=white!42!black}
+\setbeamercolor{alerted text}{fg=red!73!black}
+
+%%%%%%
+%\usepackage{Sweave}
+\usepackage{natbib}     % for references
+\usepackage[osf]{sourcesanspro}
+\usepackage{sourcecodepro}
+\usepackage{booktabs}
+\usepackage{eulervm}
+%\renewcommand{\ttdefault}{sourcecodepro}
+\usepackage{import}
+\usepackage{prodint}
+\usepackage{bbm}
+\usepackage{tabularx}
+\usepackage{dcolumn}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage{graphicx,rotating,epsfig,multirow,multicol,hhline}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+
+%% \newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\tiny\ttfamily, % Standardschrift
+  % numbers=left,               % Ort der Zeilennummern
+  %numberstyle=\tiny,          % Stil der Zeilennummern
+  % stepnumber=2,               % Abstand zwischen den Zeilennummern
+  numbersep=5pt,              % Abstand der Nummern zum Text
+  tabsize=2,                  % Groesse von Tabs
+  extendedchars=true,         %
+  breaklines=true,            % Zeilen werden Umgebrochen
+  keywordstyle=\color{blue},
+  frame=b,         
+  stringstyle=\color{white}\ttfamily, % Farbe der String
+  showspaces=false,           % Leerzeichen anzeigen ?
+  showtabs=false,             % Tabs anzeigen ?
+}
+
+%% \usepackage{subcaption}
+
+\newcommand{\ft}[1]{\frametitle{#1}}
+\newcommand{\fst}[1]{\framesubtitle{#1}}
+
+\newenvironment{xframe}[1][]
+{\begin{frame}[fragile,environment=xframe]
+    \frametitle{#1}}
+  {\end{frame}}
+
+\title[Data Manipulation]{Data Manipulation}
+
+\author{Arthur Allignol}
+
+\institute[]{\scriptsize{\url{arthur.allignol@uni-ulm.de}}}
+
+\date{}
+%%%%%%
+
+\makeatletter
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor%~~\beamer@ifempty{\insertshortinstitute}{}{(\insertshortinstitute)}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatother
+
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+%%%%%% title page
+\newcommand{\titlep}{yes}  % for titlepagelayout
+
+{
+\renewcommand{\insertframenumber}{}   % no page number on titlepage
+\begin{frame}
+\addtocounter{framenumber}{-1}
+\titlepage
+\end{frame}
+}
+
+<<setup, include = FALSE>>=
+require(knitr)
+opts_chunk$set(fig.path = "graphics/", echo = TRUE, results = "markup",
+               size = "scriptsize")
+require(Amisc)
+require(xtable)
+require(dplyr)
+require(data.table)
+@ 
+
+\section{Factors and Dates}
+
+\begin{frame}[fragile]
+  \ft{Factors}
+  \begin{itemize}
+  \item Factor are variables in R that take on a limited number of
+    different values
+    \begin{itemize}
+    \item Categorical variables
+    \item Ordinal variables
+    \end{itemize}
+  \item Factors are useful for statistical modelling as ordinal
+    variables should be treated differently than continuous variables
+  \item Factors are also useful for statistical report
+    generation. Think SAS labels
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Factors}
+  \begin{itemize}
+  \item Factors are stored internally as numeric values
+
+  \item A corresponding set of characters is used for displaying
+  \end{itemize}
+<<ex_factor, results = "markup">>=
+aa <- factor(c("cats", "dogs", "apples"))
+aa
+as.integer(aa)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Factor Creation}
+  \begin{itemize}
+  \item Factors are created using the {\tt factor} function
+  \item The {\tt levels} argument permits to control the order
+  \item The {\tt labels} argument is used to change the levels' names
+  \item \verb|ordered = TRUE| creates an ordered factor (ordinal
+    variable)
+  \end{itemize}
+<<more_on_factor, results = "markup", tidy = FALSE>>=
+set.seed(21324)
+data <- sample(c(1, 2, 3), 10, TRUE)
+f0 <- factor(data)
+f1 <- factor(data, levels = c(2, 3, 1))
+f2 <- factor(data, labels = c("I", "II", "III"))
+f3 <- factor(data, levels = c(2, 3, 1), 
+             labels = c("II", "III", "I"))
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+<<f0, results = "markup", tidy = FALSE, size = "scriptsize">>=
+table(f0)
+@ %def 
+<<f1, results = "markup", tidy = FALSE, size = "scriptsize">>=
+table(f1)
+@ %def 
+<<f2, results = "markup", tidy = FALSE, size = "scriptsize">>=
+table(f2)
+@ %def 
+<<f3, results = "markup", tidy = FALSE, size = "scriptsize">>=
+table(f3)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Factors}
+  
+  \begin{itemize}
+  \item The \verb=levels()= function can be used to change the labels
+    once a factor has been created
+<<ex_levels, results = "markup", tidy = FALSE>>=
+levels(f0) <- c("I", "II", "III")
+f0
+@ %def 
+\item The reference level of a factor can be changed using the
+  \verb=relevel= function
+<<ex_relevel, results = "markup", tidy = FALSE>>=
+f0 <- relevel(f0, "II")
+f0
+@ %def 
+
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{When Factors Are a PITA}
+<<pita1, results = "markup", tidy = FALSE, size = "scriptsize">>=
+set.seed(423423)
+ff <- factor(sample(1:4, 10, TRUE))
+@ %def @ 
+<<pita2, results = "markup", tidy = FALSE, size = "scriptsize">>=
+mean(ff)
+ff + 10
+c(ff, 10) # Not a factor anymore
+@ %def 
+\end{frame}
+  
+\begin{frame}[fragile]
+  \ft{When Factors Are a PITA}
+  
+<<pita3, results = "markup", tidy = FALSE, size = "scriptsize">>=
+(a <- factor(sample(letters, 10, replace = TRUE)))
+(b <- factor(sample(letters, 10, replace = TRUE)))
+@ %def 
+<<pita4, results = "markup", tidy = FALSE, size = "scriptsize">>=
+c(a, b)
+@ %def 
+\pause
+<<pita5, results = "markup", tidy = FALSE, size = "scriptsize">>=
+factor(c(as.character(a), as.character(b)))
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Factors}
+  \begin{itemize}
+  \item Pros
+    \begin{itemize}
+    \item Needed for modelling categorical variable
+    \item Memory efficient, i.e., factors only need to store values as
+      integer and the unique levels as character strings
+    \item Nice output
+<<ex_out, results = "markup", tidy = FALSE, size = "scriptsize">>=
+table(factor(c(1, 2, 3), 
+             labels = c("Healthy", "Diseased", "Dead")))
+@ %def 
+    \end{itemize}
+  \item Cons
+    \begin{itemize}
+    \item Require to be cautious for some data manipulation
+    \end{itemize}
+  \item I'd recommend reading data using the option
+    \verb|stringsAsFactors=FALSE| and transform variables into factors
+    as needed
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Dates}
+  
+  R provides several options to deal with dates, which is a
+  challenging problem, i.e., time zones, daylight savings, leap
+  second, \dots
+  
+  \begin{itemize}
+  \item \verb=as.Date= handles dates without time
+  \item The {\bf chron} package handles dates and times, but without
+    support for time zones
+  \item The {\tt POSIXct} and {\tt POSIXlt} allow for dates and times
+    with control for time zones
+  \item The {\bf lubridate} packages is supposed to facilitate the use
+    of dates and times in R
+  \end{itemize}
+  {\bf Rule of thumb:} Use the simplest technique possible. If you
+  only have dates, use {\tt as.Date}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Dates}
+  \fst{{\tt as.Date}}
+  
+  \begin{itemize}
+  \item {\tt as.Date} accepts a variety of input style through the
+    {\tt format} argument
+  \item Default is {\tt yyyy-mm-dd}
+<<date_1>>=
+as.Date("2014-06-12")
+@ %def 
+
+<<date_2>>=
+as.Date("12.6.2014", format = "%d.%m.%Y")
+@ %def 
+
+<<date_3>>=
+as.Date("12 June 14", format = "%d %B %y")
+@ %def 
+
+See {\tt ?strptime} for a complete list of format symbols
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Dates}
+  \fst{{\tt as.Date}}
+  
+  \begin{itemize}
+  \item Internally, dates are stored as the number of days since
+    January 1, 1970
+  \item {\tt as.numeric} can be used to convert a date to its numeric form
+<<date_4, size = "small">>=
+as.integer(as.Date("2014-06-12"))
+@ %def
+  \item The \verb=weekdays= and \verb=months= functions can be used to
+    extract the dates' components
+  \item Calculation on dates: See \verb=?Ops.Date=. Addition,
+    subtraction, logical operations (\verb|==|, \verb=<=, \dots) are
+    available
+
+  \end{itemize}
+\end{frame}
+
+
+\section{Text Processing}
+
+\begin{xframe}
+  \ft{Introduction}
+  
+  \begin{description}
+  \item[Character:] A symbol in a written language, e.g, letters,
+    numbers, punctuation marks, space, newlines, \dots
+  \item[String:] A sequence of character bound together
+  \end{description}
+  Note that R does not distinguish between character and string
+<<text_intro>>=
+test <- "a" # or 'a'
+test2 <- "apple" # or 'apple'
+class(test)
+class(test2)
+@ %def 
+
+\end{xframe}
+
+
+\begin{xframe}
+  \ft{Substrings}
+  
+  The {\tt substr} permits to extract and/or replace substrings
+<<substr_extract>>=
+# Extract
+my_string <- "cats don't like dogs"
+substr(my_string, start = 6, stop = 15)
+@ %def 
+<<substr_extract2>>=
+# Works with vectors
+my_vector <- c("cats", "dogs", "apple")
+substr(my_vector, 2, 2)
+@ %def 
+\end{xframe}
+
+\begin{xframe}
+  \ft{Split Strings into Vectors}
+  
+  The {\tt strsplit} function permits to split a string into a list
+  containing multiple strings based on a given delimiter
+<<strsplit_1>>=
+another_string <- "cats, dogs and apples"
+strsplit(another_string, split = ",")
+strsplit(another_string, split = " ")[[1]]
+@ %def 
+<<strsplit_2>>=
+yet_another_string <- "walk into a bar"
+strsplit(c(another_string, yet_another_string), split = " ")
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Build Strings from Multiple Parts}
+  \fst{The {\tt paste} function}
+  
+  The {\tt paste} function combines multiple strings into a single
+  strings. The {\tt sep} and {\tt collapse} arguments control the
+  separation. 
+<<paste1>>=
+paste(c("cats", "dogs", "apple"), collapse = "|") # BUT
+paste(c("cats", "dogs", "apple"), sep = "|")
+# collapse permits to concatenate strings from a single vector
+@ %def 
+<<paste2>>=
+paste("cats", "dogs", "apple", sep = "|")
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Search and Replace}
+  
+  R provides several functions for searching and replacing text
+  \begin{center}
+    {\small
+      \begin{tabular}{lp{8cm}} 
+        \toprule
+        {\tt grep}                 & Search for {\tt pattern} in a
+        vector {\tt x} and return the indices of matches or matching
+        string ({\tt value = TRUE})       \\[5pt]
+        {\tt grepl} & As grep but returns a logical vector \\[5pt]
+        {\tt regexpr} & Return character position of the first match
+        as well as length of the match. -1 is returned if no match \\[5pt]
+        {\tt gregexpr} & As {\tt regexpr} but reports all matches \\[5pt]
+        {\tt regexec} & Comparable to {\tt regexpr} but returns a list\\[5pt]
+        \midrule
+        {\tt sub} & Finds pattern in text and replaces first
+        match with specified string \\[5pt]
+        {\tt gsub} & As {\tt sub} but replaces all matches\\[5pt]
+        \bottomrule
+      \end{tabular}}
+  \end{center}
+\end{xframe}
+
+\begin{xframe}
+  \ft{Simple Matching}
+  
+<<match_simple>>=
+l <- c("apple", "banana", "grape", "10", "green.pepper")
+grep(pattern = "a", x = l)
+grep(pattern = "a", x = l, value = TRUE)
+grepl("a", l)
+
+@ %def 
+
+\end{xframe}
+
+
+\section{Data Manipulation}
+
+
+\begin{frame}[fragile]
+  \ft{Lists}
+  
+  Lists are the most general R object. 
+<<list_1, size = "scriptsize">>=
+(ll <- list(a = 1:3, b = month.name[1:5], c = c(TRUE, FALSE), 
+            d = data.frame(y = rnorm(5), x = rbinom(5, 1, .5))))
+@ %def 
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Lists}
+
+<<list_2, size = "scriptsize">>=
+class(ll[[4]]); class(ll[["d"]]); class(ll$d)
+class(ll[4])
+@ %def 
+
+<<list_3, size = "scriptsize">>=
+ll[c(1, 3)]
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Subscripting Data Frames}
+  
+<<df_1, size = "scriptsize">>=
+set.seed(4234234)
+(df <- data.frame(x = c(rnorm(3), NA, 3), 
+                 y = c(NA, rexp(2, 0.01), NA, 3)))
+df$x
+df[, "x", drop = FALSE]
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Subscripting Data Frames}
+
+<<df_2, size = "scriptsize">>=
+df[df$y > 10, ]
+@ %def 
+
+<<df_3, size = "scriptsize">>=
+df[!is.na(df$y) & df$y > 10, ]
+@ %def 
+
+<<df_4, size = "scriptsize">>=
+subset(df, y > 10)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Subscripting Data Frames}
+
+{\small Order a data frame}
+<<df_order, size = "scriptsize">>=
+df[order(df$x), ]
+@ %def 
+
+\end{frame}
+
+
+\section{Data Aggregation}
+
+\begin{frame}[fragile]
+  \ft{Data Aggregation}
+  
+  \begin{itemize}
+  \item For simple tabulation and cross-tabulation, the \verb=table=,
+    \verb=ftable= and \verb=xtabs= functions are available
+  \item For more complex tasks, the available functions can be
+    classified into two groups
+    \begin{itemize}
+    \item Functions that operate on arrays and/or lists
+      (e.g., \verb=*apply=, \verb=sweep=)
+    \item Functions oriented towards data frames (e.g.,
+      \verb=aggregate=, \verb=by=)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt table} function}
+  
+<<iris_intro>>=
+data(iris)
+
+head(iris)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt table} function}
+  
+  \vspace{-0.5cm}
+<<iris_1, size = "scriptsize">>=
+table(iris$Species)
+@ %def 
+
+<<iris_2, size = "scriptsize">>=
+table(iris$Species, iris$Petal.Length > 6)
+@ %def 
+
+<<iris_3, size = "scriptsize">>=
+as.data.frame(table(iris$Species, iris$Petal.Length > 6))
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Road Map for Aggregation}
+  
+  Three things to consider
+  \begin{enumerate}
+  \item How are the groups that divide the data defined?
+  \item What is the nature of the data to be operated on?
+  \item What is the desired end result
+  \end{enumerate}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Defined as Lists Elements}
+  
+  \verb=sapply= or \verb=lapply= are the appropriate functions
+  \begin{itemize}
+  \item \verb=lapply= always returns a list
+  \item \verb=sapply= tries to ``simplify'' the output
+  \end{itemize}
+\pause
+<<lapply_1, size = "tiny">>=
+myList <- list()
+for (i in 1:4) {
+    myList[[i]] <- rnorm(n = 3 * i)
+}
+myList
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Defined as Lists Elements}
+
+  {\small Both for \verb=lapply= and \verb=sapply=, the first argument
+    is a list, the second argument is a function
+    
+    Third, fourth, \dots arguments are further arguments for the
+    function that is applied}
+<<lapply_3, size = "scriptsize">>=
+lapply(myList, length)
+@ %def 
+
+
+<<lapply_4, size = "scriptsize">>=
+sapply(myList, length)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Defined as Lists Elements}
+  
+<<lapply_5, size = "scriptsize">>=
+myList[[2]][c(3, 5)] <- NA
+sapply(myList, mean)
+@ %def 
+
+<<lapply_6, size = "scriptsize">>=
+sapply(myList, mean, na.rm = TRUE)
+@ %def 
+
+<<lapply_7, size = "scriptsize">>=
+sapply(myList, quantile, probs = c(0.25, 0.75), na.rm = TRUE)
+@ 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Defined as Lists Elements}
+  
+<<lapply_10, size = "scriptsize">>=
+mySummary <- function(x, na.rm = FALSE) {
+    data.frame(
+        Mean = mean(x, na.rm = na.rm),
+        SD = sd(x, na.rm = na.rm),
+        Min = min(x, na.rm = na.rm),
+        Max = max(x, na.rm = na.rm))
+}
+
+sapply(myList, mySummary, na.rm = TRUE)
+@ %def 
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \ft{Groups Defined by Rows or Columns of a Matrix/Array}
+  
+  In this case, the {\tt apply} function is the logical choice. 
+  
+  The \verb=apply= function requires three arguments
+  \begin{itemize}
+  \item the array/matrix on which to operate
+  \item An index telling \verb=apply= which dimension to operate on (\verb=1=
+    on rows; \verb=2= on columns, \verb=c(1, 2)= on both
+  \item The function to use
+  \item Optionally further arguments to be used by the function that
+    we want to apply
+  \end{itemize}
+ 
+<<apply_1, size = "scriptsize">>=
+apply(iris[, 1:4], 2, mean)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Defined by Rows or Columns of a Matrix/Array}
+
+<<apply_2, size = "scriptsize">>=
+apply(iris[, 1:4], 2, mySummary)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Based on One or More Grouping Variables}
+  
+  A very common operation
+  
+  A lot of choice in base R + a couple of additional packages that
+  facilitates these operations
+  
+  \begin{itemize}
+  \item \verb=aggregate=
+  \item \verb=tapply=, \verb=by=
+  \item {\em split-apply-combine} strategy
+    \begin{itemize}
+    \item \verb=split=, \verb=lapply=, \verb=do.call=
+    \item {\bf plyr}, {\bf dplyr} package
+    \item \dots
+    \end{itemize}
+
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Based on One or More Grouping Variables}
+  \fst{{\tt aggregate}}
+  
+  A natural choice for data summaries of several variables
+  \begin{itemize}
+  \item First argument: A formula
+    \begin{itemize}
+    \item LHS: Variables to ``summarise''
+    \item RHS: Grouping variables
+    \end{itemize}
+  \item Second argument: A data frame
+  \item Third argument: Function to apply
+  \item \dots; Further arguments for {\tt FUN} 
+  \end{itemize}
+
+<<aggr1, size = "tiny">>=
+iris$Petal.Length.f <- factor(iris$Petal.Length > 4.8, 
+                              levels = c(FALSE, TRUE), 
+                              labels = c("Small petals", "Big petals"))
+aggregate(cbind(Sepal.Length, Sepal.Width) ~ Species + Petal.Length.f, 
+          data = iris, FUN = mean)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Groups Based on One or More Grouping Variables}
+  \fst{Split-Apply-Combine}
+  
+  Term coined by Hadley Wickham (author of the {\bf ggplot2}, {\bf plyr},
+  {\bf reshape}, {\bf dplyr}, \dots, packages)
+  \begin{description}
+  \item[Split] Divide the problem into smaller pieces
+  \item[Apply] Work on each pieces independently
+  \item[Combine] Recombine the pieces
+  \end{description}
+  A common problem for both programming and data analysis; many
+  implementations
+  \begin{itemize}
+  \item In base R: {\tt split()}, {\tt *apply()}, {\tt do.call()}
+  \item R-packages: {\bf plyr}, {\bf doBy}, {\bf dplyr}, {\bf
+      data.table} (to some extent) 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Split-Apply-Combine}
+  \fst{Base R}
+  \begin{itemize}
+  \item Split by species
+<<sac_base1, size = "tiny">>=
+s_iris <- split(iris, iris$Species)
+
+## s_iris is a list with number of items 
+## equal to the number of levels of iris$Species
+length(s_iris) == length(levels(iris$Species))
+@ %def
+\item Apply a function to each item of the list
+<<sac_base_2, size = "tiny">>=
+s_means <- lapply(s_iris, function(x) colMeans(x[1:4]))
+s_means[[1]]
+@ %def
+\item Combine
+<<sac_base3, size = "tiny">>=
+(res <- do.call(rbind, s_means))
+@ %def 
+
+\end{itemize}
+  
+\end{frame}
+
+%% \begin{frame}[fragile]
+%%     \ft{Split-Apply-Combine}
+%%     \fst{The {\bf plyr} Package}
+    
+%%     The *apply functions in base R implement the split-apply-combine
+%%     strategy, but are inconsistent
+%%     \begin{itemize}
+%%     \item \verb=apply()= input {\tt arrays}; split by row and/or columns;
+%%       output {\tt array} 
+%%     \item \verb=lapply()= input {\tt list} or {\tt vector}; output
+%%       {\tt list}
+%%     \item \verb=sapply()= input {\tt list} or {\tt vector}; simplify
+%%       to vector
+%%     \item \verb=tapply= input {\tt data.frame}; output depends
+%%     \item \verb=rapply()=, \verb=vapply()=, \verb=mapply()=
+%%     \end{itemize}\pause\vspace{0.3cm}
+%%     {\bf plyr} brings some consistency: \verb=**ply()=
+%%     \begin{description}
+%%     \item[first *] Input type ({\tt a} array, {\tt d} data frame, {\tt
+%%         l} list)
+%%     \item[second *] Output type ({\tt a} array, {\tt d} data frame, {\tt
+%%         l} list, \verb=_= discard)
+%%     \end{description}
+  
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%   \ft{{\bf plyr}}
+%%   \fst{{\tt a*ply()}}
+  
+%%   \verb=y <- a*ply(.data, .margins., .fun, ...)=
+%%   \vspace{0.5cm}
+%%   \begin{description}
+%%   \item[.data] An array
+%%   \item[.margins] Subscripts which the function gets applied over
+%%   \item[.fun] Function to apply to each piece
+%%   \end{description}
+%%   Returns an array (\verb|*=a|), a data.frame (\verb|*=d|), a list
+%%   (\verb|*=l|)
+  
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%   \ft{{\bf plyr}}
+%%   \fst{{\tt l*ply()}}
+  
+%%   \verb=y <- l*ply(.data, .fun, ...)=
+%%   \vspace{0.5cm}
+%%   \begin{description}
+%%   \item[.data] An list
+%%   \item[.fun] Function to apply to each item of the list
+%%   \end{description}
+%%   Returns an array (\verb|*=a|), a data.frame (\verb|*=d|), a list
+%%   (\verb|*=l|)
+  
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%   \ft{{\bf plyr}}
+%%   \fst{{\tt d*ply()}}
+  
+%%   \verb=y <- d*ply(.data, .variables, .fun, ...)=
+%%   \vspace{0.5cm}
+%%   \begin{description}
+%%   \item[.data] A data frame
+%%   \item[.variables] Variables defining the groups
+%%   \item[.fun] Function to apply to each group
+%%   \end{description}
+%%   Returns an array (\verb|*=a|), a data.frame (\verb|*=d|), a list
+%%   (\verb|*=l|)
+  
+%% \end{frame}
+
+%% \begin{frame}[fragile]
+%%   \ft{{\bf plyr}}
+%%   \fst{{\tt d*ply()}}
+
+%% <<ddply1, size = "scriptsize">>=
+%% (res <- ddply(iris, "Species", myLM))
+%% @ %def 
+
+%% \pause \vspace{0.5cm} 
+%% The only problem with {\bf plyr} is that it
+%% is sometimes slow
+%% \end{frame}
+
+\begin{frame}
+  \ft{The {\bf dplyr} package} 
+  
+  The {\bf dplyr} package proposes a ``grammar of data manipulation'',
+  i.e., it implements ``verbs'' useful for data manipulation.
+  
+  \begin{description}
+  \item[{\tt select}] column subset (select variables)
+  \item[{\tt filter}] row subset ($\Leftrightarrow$ {\tt subset} in
+    base R)
+  \item[mutate] add new/modify rows
+  \item[summarise] summary statistics
+  \item[{\tt arrange}] re-order the rows
+  \item[{\tt do}] arbitrary action
+  \end{description}
+  
+  \begin{itemize}
+  \item {\bf dplyr} supports data.frames, data.tables (see later) as
+    well as data bases
+  \item Operations can be chained using a pipe operator
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf dplyr} package}
+  
+  Compute the mean sepal width by species for flower whose petal
+  length is longer than 4.8
+<<dlyr_1>>=
+iris %>% group_by(Species) %>% filter(Petal.Length > 4.8) %>%
+  summarise(mean_width = mean(Petal.Width))
+@ %def 
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  The {\bf data.table} package enhances the base data.frame. The
+  package offers (extremely) fast
+  
+  \begin{itemize}
+  \item subset
+  \item grouping
+  \item update
+  \item joints (merging)
+  \end{itemize}
+  
+  A {\tt data.table} inherits from {\tt data.frame}, i.e., it is
+  compatible with R functions and packages that only accept
+  {\tt data.frame}.
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  The general syntax is
+<<dt_general, eval = FALSE>>=
+dt[i, j, by]
+@ %def 
+  \begin{description}
+  \item[{\tt i}] permits to select rows (A bit like {\tt subset})
+  \item[{\tt j}] permits to update/create columns. Extremely flexible
+    {\color{gray}(maybe too much?)}
+   \item[{\tt by}] permits to ``group by''
+  \end{description}
+Additionally, data.tables can be {\em keyed} by one or more variables,
+leading to
+\begin{itemize}
+\item ordered data
+\item faster merging by keyed variables
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  Subset rows in {\tt i}
+<<dt_subset>>=
+require(data.table)
+(dt_iris <- data.table(iris, key = "Species"))
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  Subset rows in {\tt i}
+
+<<dt_subset_1>>=
+dt_iris[Species == "versicolor" & Petal.Length > 4.8]
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  Select columns in {\tt j}
+<<dt_j_1>>=
+dt_iris[1:3, Species]
+dt_iris[Species == "versicolor" & Petal.Length > 4.8, 
+        list(Species, Petal.Length)]
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  Compute in {\tt j}: As long as {\tt j-expressions} returns a list,
+  each element of the list will be converted to a column
+  
+<<dt_do_1>>=
+dt_iris[, mean(Petal.Length)]
+dt_iris[Species == "versicolor", mean(Petal.Length)]
+@ %def @ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+
+<<dt_do_2>>=
+dt_iris[Species == "versicolor", list(mean = mean(Petal.Length),
+        sd = sd(Petal.Length))]
+
+## With a use defined function
+myFun <- function(x) {
+    list(mean = mean(x),
+         sd = sd(x))
+}
+dt_iris[Species == "versicolor", myFun(Petal.Length)]
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+  
+  Group by using {\tt by}
+<<by_1>>=
+dt_iris[, .N, by = list(Species, Petal.Length.f)]
+dt_iris[, myFun(Sepal.Length), by = list(Species, Petal.Length.f)]
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\bf data.table} package}
+
+  Reorder the last output by {\tt Species} and {\tt Petal.Length.f}
+
+<<by_2>>=
+tmp <- dt_iris[, myFun(Sepal.Length), by = list(Species, Petal.Length.f)]
+(setkeyv(tmp, c("Species", "Petal.Length.f")))
+@ %def 
+\end{frame}
+
+\begin{xframe}
+  \ft{Update/create column with the {\tt :=} operator}
+  
+  The {\tt :=} operator adds or update columns by reference
+  
+<<size = "tiny">>=
+dt_iris[, new_variable := Petal.Length + 1]
+@ %def 
+
+\end{xframe}
+
+\section{Data Reshaping}
+
+\begin{frame}
+  \ft{Data Reshaping}
+  An important operation in R
+  \begin{itemize}
+  \item Most R functions expect their input (usually data frames) to
+    be arranged in particular ways
+  \item It is the responsibility of the user to ensure that the data
+    are in the appropriate form
+  \item For instance, data for multiple groups are organised as
+    columns, with a column for each group
+  \item Most R functions expect values to be in {\bf one} column with
+    an additional column specifying the groups  
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Long versus Wide Format} 
+  
+  Useful concept for, e.g., {\em longitudinal studies}, in which a
+  patient may have several measurements over time
+  \begin{description}
+  \item[Wide] If all the measurements for a single individual are in
+    the same row, the data are said to be {\bf wide}
+    \small{
+\begin{verbatim}
+id visit1 visit2
+1      90     95
+2      80     78
+\end{verbatim}}
+  \item[Long] If each measurement is in a different row, the data are
+    said to be in the {\bf long} format
+\small{
+\begin{verbatim}
+id visit measure
+ 1     1      90
+ 1     2      95
+ 2     1      80
+ 2     2      78
+\end{verbatim}}
+  \end{description}
+  Most data sets are delivered in the wide format, modelling is done
+  in the long format
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  
+  The \verb=reshape= function performs the long $\rightarrow$ wide and
+  wide $\rightarrow$ long transformations
+  \begin{itemize}
+  \item Motivated by longitudinal data (repeated measurements) 
+  \item Very flexible function (maybe too much)
+  \item {\color{gray} Google very useful for using this function} 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+<<reshape0, echo = FALSE>>=
+usp <- data.frame(type=rownames(USPersonalExpenditure),
+                  USPersonalExpenditure,row.names=NULL)
+@ %def 
+
+As an example, consider a data set on US personal expenditure
+<<reshape1, size = "scriptsize">>=
+usp
+@ %def 
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  Useful arguments for wide to long transformations
+  \begin{itemize}
+  \item \verb=varying=: names of sets of variables in the wide format
+    that correspond to single variables in long format. Can be a list
+    of names (see later)
+  \item \verb=v.names=: The name we wish to give the variable
+    containing these values in our long dataset
+  \item \verb=timevar=: The name we wish to give the variable
+    describing the different times or metrics
+  \item \verb=times=: the values this variable will have
+  \item \verb=idvar=: Values describing the different individuals
+  \item \verb=direction=: Character string indicating the direction of
+    the transformation; either \verb="wide"= or \verb="long"=
+  \item \verb=times=, \verb=split=, \verb=sep=
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+
+<<reshape4, size = "scriptsize">>=
+rr2 <- reshape(usp, varying = list(names(usp)[-1]), idvar = "type",
+               times = seq(1940, 1960, 5), v.names = "expenditure", 
+               direction = "long")
+head(rr2)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+<<reshape5, size = "scriptsize">>=
+rr3 <- reshape(usp, varying = names(usp)[-1], idvar = "type",
+               times = seq(1940, 1960, 5), v.names = "expenditure", 
+               direction = "long")
+head(rr3)
+@ %def
+
+\pause
+
+Specifying a vector of names in \verb=varying= now works because we
+also specify how the resulting variable should be named
+(\verb=v.names=)
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+  The \verb=sep= argument is sometimes useful to help \verb=reshape=
+  automagically find the \verb=v.names=
+
+<<reshape7, size = "scriptsize">>=
+rr5 <- reshape(usp, varying = names(usp)[-1], idvar = "type",
+               sep = "",
+               direction = "long")
+head(rr5)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+  Reshape()'d data have additional attributes so that the inverse
+  transformation is easy 
+<<reshape8, size = "scriptsize">>=
+reshape(rr2)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+
+<<reshape_wide0, size = "scriptsize">>=
+longdat <- data.frame(id = as.integer(mapply(rep, 1:3, 3)), 
+                      visit = rep(1:3, 3),
+                      x = rnorm(9), y = rnorm(9))
+longdat
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+  
+  Arguments needed (beside the data set to reshape)
+  \begin{itemize}
+  \item \verb=idvar=: names of variable that define the experimental
+    units
+  \item \verb=v.names=: Variables that are used to create the multiple
+    variables in the wide format
+  \item \verb=timevar= identifies the ``time'' variable for the
+    repeated measurements
+  \item \verb=direction=: \verb="long"= or \verb="wide"=
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+  
+<<reshape_wide1, size = "scriptsize">>=
+widedat <- reshape(longdat, idvar = "id", v.names = c("x", "y"), 
+                   timevar = "visit", direction = "wide")
+widedat
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+
+  Wide to long transformation again easy from the reshape()'d data
+<<reshape_wide2, size = "scriptsize">>=
+reshape(widedat)
+@ %def 
+
+\end{frame}
+
+
+
+\section{Combining and Merging}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}
+  
+  At the most basic level, two or more data frames can be combined by
+  rows using \verb=rbind=, or by columns using \verb=cbind=
+  \begin{description}
+  \item[rbind] Data frames must have the same number of columns
+  \item[cbind] The data must have the same number of rows
+  \end{description} 
+<<comb0, size = "scriptsize">>=
+d1 <- data.frame(x = rnorm(4), y = sample(letters, 4, replace = FALSE))
+d2 <- data.frame(x = rnorm(4), y = sample(letters, 4, replace = FALSE))
+d1
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt cbind}}
+<<comb1, size = "scriptsize">>=
+cbind(d1, d2)
+@ %def 
+{\small Duplicate column names are not detected}
+\pause 
+<<comb2, size = "scriptsize">>=
+cbind(d1, z = c(1, 2))
+@ %def 
+{\small Smaller vectors/data are recycled}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt rbind}}
+  
+  For using \verb=rbind=, names and classes of values to be joined
+  must match 
+<<rbind1, size = "scriptsize">>=
+rbind(d1, d2)
+@ %def 
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt rbind}}
+  
+<<rbind2, size = "scriptsize">>=
+d1$y <- factor(d1$y)
+d2$y <- factor(d2$y)
+rbind(d1, d2)
+@ %def 
+It works!
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt rbind}}
+<<rbind3, size = "tiny">>=
+(d3 <- rbind(d1, data.frame(x = "X", y = 12)))
+sapply(d3, class)
+@ %def 
+<<rbind4, size = "scriptsize">>=
+rbind(d1, data.frame(y = "X", d = 12))
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+  
+  For more complicated tasks, the \verb=merge= function can be used
+  \begin{itemize}
+  \item The default behaviour of merge is to join together rows of the
+    data frames based on the values of all of the variables (columns)
+    that the data frames have in common ({\em natural join})
+  \item When called without argument, \verb=merge= only returns rows
+    which have observations in both data frames
+<<merge0, size = "scriptsize">>=
+dd1 <- data.frame(a = c(1,2,4,5,6), x = c(9,12,14,21,8))
+dd2 <- data.frame(a=c(1,3,4,6),y=c(8,14,19,2))
+merge(dd1, dd2)
+@ %def 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+  
+  To change the default behaviour the arguments
+  \begin{itemize}
+  \item \verb|all = TRUE|: Includes all rows ({\em full outer join})
+  \item \verb|all.x = TRUE|: Includes all rows of the first data frame
+    ({\em left outer join})
+  \item \verb|all.y = TRUE|: Includes all rows of the second data frame
+    ({\em right outer join})
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+  \begin{itemize}
+  \item The \verb=by= argument permits to specify the name of the
+    variables that should be used for the merging.
+  \item If the merging variables have different names in the data
+    frames to merge, the \verb=by.x= and \verb=by.y= arguments can be
+    used
+  \end{itemize} 
+<<merge4, size = "scriptsize">>=
+dd1$PAT <- letters[1:5]
+dd2$id <- letters[3:6]
+merge(dd1, dd2, by.x = c("PAT"), by.y = c("id"))
+@ %def 
+\pause
+Note the new variables \verb=a.x= and \verb=a.y=
+  
+\end{frame}
+
+\begin{xframe}
+  \ft{Merge with {\bf dplyr}}
+  
+  {\bf dplyr} includes some functions for merging data sets
+  \begin{description}
+  \item[{\tt inner\_join}] Equivalent to {\tt merge} without arguments
+  \item[{\tt left\_join}] Equivalent to {\tt merge} with {\tt all.x = TRUE}
+  \item[{\tt right\_join}] Equivalent to {\tt merge} with {\tt all.y = TRUE}
+  \item[{\tt full\_join}] Equivalent to {\tt merge} with {\tt all = TRUE}
+  \end{description}
+
+<<>>=
+left_join(dd1, dd2, by = c("PAT" = "id"))
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Merge with {\bf data.table}}
+  
+  \begin{itemize}
+  \item A {\tt merge} function is available in the {\bf data.table}
+    package.
+  \item It works in the same way as the base function
+  \end{itemize}
+\end{xframe}
+
+
+\end{document}

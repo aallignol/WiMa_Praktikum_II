@@ -1,0 +1,17 @@
+/------------\  knitr /-----------\   latex  /-----------\
+|cCCC        |        |cCCC       |          |cCCC       |
+|  foo.Rnw   |------->|  foo.tex  |--------->|  foo.pdf  |
+|            |        |           |          |           | 
+\------------/	      \-----------/          \-----------/
+- A .tex file with    - .Rnw file converted  - .tex file converted 
+  .Rnw extension        to .tex using knitr    to .pdf (or .ps, .dvi)
+- Include R code as   - The .tex file 
+  'chunks' or inline    contains output
+                        from R; no raw code
+
+/------------\  knitr /-----------\   pandoc /-----------\
+|cCCC        |        |cCCC       |          |cCCC       |
+|  foo.Rmd   |------->|  foo.md   |--------->|  foo.html |
+|            |        |           |          |           | 
+\------------/	      \-----------/          \-----------/
+- R markdown file     - markdown file        - html file

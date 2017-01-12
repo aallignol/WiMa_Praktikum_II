@@ -1,0 +1,180 @@
+\documentclass[a4,11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+%% \title{Analysis of the {\ttfamily GSOEP9402} data}
+%% \author{Arthur Allignol}
+%% \date{}
+
+\usepackage{booktabs}
+\usepackage[osf]{sourcesanspro}
+\usepackage{sourcecodepro}
+\usepackage[T1]{fontenc}
+%\renewcommand*{\ttdefault}{sourcecodepro}
+\usepackage{subcaption}
+\usepackage{graphicx,rotating,epsfig,multirow,multicol,hhline}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{sfmath}
+
+
+\def\bea{\begin{eqnarray*}}
+\def\eea{\end{eqnarray*}}
+%Dense format
+\setlength{\parindent}{0em} \setlength{\textwidth}{16cm} \setlength{\textheight}{25cm}
+\setlength{\topmargin}{-0.5cm} \setlength{\oddsidemargin}{0cm} \setlength{\headheight}{0cm}
+\setlength{\headsep}{0cm}
+\newcommand{\nat}{{\it I\hspace{-0.12cm}N}}
+\pagestyle{empty}
+
+
+\newcommand{\p}{{\rm P}}
+\newcommand{\erw}{{\rm E}}
+\newcommand{\var}{{\rm var}}
+\newcommand{\eins}{{\bf 1}}%{\mathbf{1}}
+\newcommand{\dif}{{\rm d}}
+\newcommand{\cif}{{\rm CIF}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\D}{\mathrm{d}}
+
+%Special commands:
+\newcommand{\Bin}{\operatorname{Bin}} % Binomial Distribution
+\newcommand{\NegBin}{\operatorname{NegBin}} % Negative Bin
+\newcommand{\HypGeom}{\operatorname{HypGeom}} % Hypergeometric Distribution
+\newcommand{\Pois}{\operatorname{Po}} % Hypergeometric Distribution
+\newcommand{\Po}{\operatorname{Po}} %
+\newcommand{\Exp}{\operatorname{Exp}} %
+\newcommand{\Par}{\operatorname{Par}} %
+\newcommand{\Ga}{\mathcal{G}a} %
+\newcommand{\Be}{\mathcal{B}e} %
+\newcommand{\Var}{\operatorname{Var}} %
+\newcommand{\E}{\operatorname{E}} %
+\newcommand{\Cov}{\operatorname{Cov}} %
+\newcommand{\MSE}{\operatorname{MSE}}
+
+\DeclareMathOperator{\Nor}{N} % Normal -
+\DeclareMathOperator{\Log}{Log} % Logistische Verteilung -
+\newcommand{\ml}[2][1]{% % für Maximum-Likelihood-Schätzer von #1
+\ifthenelse{#1 = 1}%
+ {\hat{#2}_{\scriptscriptstyle{ML}}}%
+ {\hat{#2}^{#1}_{\scriptscriptstyle{ML}}}% z.B. für sigmadach^2
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Environment for Aufgaben
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter{ka}
+
+
+\newtheorem{exercise}{Problem}
+\newenvironment{aufgabe}{\begin{exercise}\sf}{\end{exercise} \bigskip}
+
+\newcommand{\footer}{ \vfill
+  \mbox{}\hrulefill\\
+  Upload your solutions until the 12.5.2016, 10h00 s.t. on
+  Moodle. Only one solution per group. Please upload the source files
+  as well as the solutions.}
+%\xxivtime   Uhrzeit für letzte Änderung
+
+\pagestyle{empty}
+
+\renewcommand{\labelenumi}{(\alph{enumi})}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\renewcommand{\baselinestretch}{1}
+
+\hrulefill\\
+{\bf WiMa-Praktikum II -- Stochastic} \hspace{\fill} Summer term 2016\\
+Arthur Allignol \hspace{\fill} 28.4.2016\\[-1.2ex]
+\mbox{}\hrulefill\\
+\newline \renewcommand{\baselinestretch}{1}
+\setcounter{ka}{0} \vspace{-0.5cm}
+
+
+
+\begin{center}
+\large{{\bf Exercise Sheet 2 --- Data manipulation in SAS}}
+\end{center}
+
+A free version of SAS is available at
+\url{http://www.sas.com/de_de/software/university-edition.html#f-r-studenten-und-lernende}. 
+Documentation can be found here 
+\url{http://support.sas.com/software/products/university-edition/index.html#s1=3}.
+
+\begin{aufgabe}
+  Consider again the data sets {\tt US\_Foreign\_Aid\_00s.csv}, {\tt
+    US\_Foreign\_Aid\_10s.csv} and {\tt US\_Foreign\_Aid\_90s.csv} in the
+  zip file {\tt US\_Foreign\_Aid.zip} on Moodle. 
+  
+  \begin{enumerate}
+  \item Read and merge the 3 data sets by country and program
+  \item Run a {\tt proc contents} and look at the format of the {\tt
+      FY} variables. What happened?
+  \item Transform the missing values into valid SAS missing values and
+    change the format of these variable into numeric
+  \item Reshape the data in the long format
+  \item Compute the total foreign aid over the years, as well as for each
+    year, given to Afghanistan, Iraq and Yemen.
+  \item Create a variable that equals $1$ if the help program is concerned
+    with military/security, $0$ otherwise. Then 'label' this variable.
+  \end{enumerate}
+  
+  
+\end{aufgabe}
+
+\footer
+
+
+\end{document}

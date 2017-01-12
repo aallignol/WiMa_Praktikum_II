@@ -1,0 +1,970 @@
+\documentclass[paper=screen,mathserif]{beamer}
+
+\usetheme{CambridgeUS} 
+\useinnertheme{circles}
+\useoutertheme[footline=authortitle,subsection = false]{miniframes}
+\setbeamercolor{palette tertiary}{fg=white, bg=white!42!black}
+\setbeamercolor{alerted text}{fg=red!73!black}
+
+%%%%%%
+%\usepackage{Sweave}
+\usepackage{natbib}     % for references
+\usepackage[osf]{sourcesanspro}
+\usepackage{sourcecodepro}
+\usepackage{booktabs}
+\usepackage{eulervm}
+%\renewcommand{\ttdefault}{sourcecodepro}
+\usepackage{import}
+\usepackage{prodint}
+\usepackage{bbm}
+\usepackage{tabularx}
+\usepackage{dcolumn}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage{graphicx,rotating,epsfig,multirow,multicol,hhline}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+
+%% \newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\tiny\ttfamily, % Standardschrift
+  % numbers=left,               % Ort der Zeilennummern
+  %numberstyle=\tiny,          % Stil der Zeilennummern
+  % stepnumber=2,               % Abstand zwischen den Zeilennummern
+  numbersep=5pt,              % Abstand der Nummern zum Text
+  tabsize=2,                  % Groesse von Tabs
+  extendedchars=true,         %
+  breaklines=true,            % Zeilen werden Umgebrochen
+  keywordstyle=\color{blue},
+  frame=b,         
+  stringstyle=\color{white}\ttfamily, % Farbe der String
+  showspaces=false,           % Leerzeichen anzeigen ?
+  showtabs=false,             % Tabs anzeigen ?
+}
+
+%% \usepackage{subcaption}
+
+\newcommand{\ft}[1]{\frametitle{#1}}
+\newcommand{\fst}[1]{\framesubtitle{#1}}
+
+\newenvironment{xframe}[1][]
+{\begin{frame}[fragile,environment=xframe]
+    \frametitle{#1}}
+  {\end{frame}}
+
+\title[R Graphics]{WiMa-Praktikum II Stochastic}
+\subtitle{R Graphics}
+
+\author{Arthur Allignol}
+
+\institute[]{\scriptsize{\url{arthur.allignol@uni-ulm.de}}}
+
+\date{}
+%%%%%%
+
+\makeatletter
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor%~~\beamer@ifempty{\insertshortinstitute}{}{(\insertshortinstitute)}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatother
+
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+%%%%%% title page
+\newcommand{\titlep}{yes}  % for titlepagelayout
+
+{
+\renewcommand{\insertframenumber}{}   % no page number on titlepage
+\begin{frame}
+\addtocounter{framenumber}{-1}
+\titlepage
+\end{frame}
+}
+
+<<setup, include = FALSE>>=
+require(knitr)
+opts_chunk$set(fig.path = "graphics/", echo = FALSE, results = "markup",
+               size = "scriptsize")
+require(Amisc)
+require(xtable)
+require(lattice)
+require(latticeExtra)
+require(ggplot2)
+require(gridExtra)
+require(plotrix)
+require(Epi); data(births)
+require(dplyr)
+require(HistData)
+@ 
+
+\section{Introduction}
+
+%% \begin{frame}
+%%   \ft{Introduction}
+%%   \fst{Minard's Flow Map}
+%%   \centering
+%%   \includegraphics[width=\linewidth]{graphics/1024px-Minard.png}
+%% \end{frame}
+
+\begin{frame}
+  \ft{Introduction}
+  \fst{Why do we need graphics?}
+  \begin{itemize}
+  \item Data exploration
+    \begin{itemize}
+    \item Look for trends and/or associations between variable
+    \item The first step before modelling
+    \item $\rightarrow$ quick and dirty graphs
+    \end{itemize}
+  \item Check assumptions of statistical models
+  \item These graphics are usually for you
+  \end{itemize}
+\end{frame}
+
+%% \begin{frame}
+%%   \ft{Introduction}
+%%   \fst{Data exploration}
+%%   \vspace{-0.3cm}
+%%   \centering
+%% <<dotchart_school, out.width=".65\\linewidth">>=
+%% tab_dot <- as.matrix(prop.table(table(gsoep$birthyear, gsoep$school), 
+%%                                 margin = 1)) * 100
+
+%% dotchart(tab_dot, xlab = "%")
+%% @ %def 
+%% \end{frame}
+
+\begin{xframe}
+  \ft{Introduction}
+  \fst{Data exploration}
+  \centering
+<<tele, out.width=".6\\linewidth">>=
+tele <- read.csv("/data/Ulm/Teaching/SS_2014/Intro_Biostat_Comp/Illustrations/Television/data/television.csv", 
+                 stringsAsFactors = FALSE, na.strings = "*")
+
+with(tele, plot(life, log(tv)))
+
+@ %def 
+
+\end{xframe}
+
+\begin{frame}
+  \ft{Introduction}
+  \fst{Model checking}
+  \centering
+  \includegraphics[width = .7\textwidth]{graphics/data_check.png}
+\end{frame}
+
+\begin{frame}
+  \ft{Introduction}
+  \fst{Why do we need graphics?}
+  \begin{itemize}
+  \item Information visualisation/Communication
+    \begin{itemize}
+    \item Need a lot of polishing
+    \item Iteration is crucial
+    \item Think about where you present the graphics, e.g, colour,
+      line thickness for a beamer presentation
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \ft{Introduction}
+  \fst{Minard's Flow Map}
+  \centering
+  \includegraphics[width=\linewidth]{graphics/1024px-Minard.png}
+\end{frame}
+
+\begin{frame}
+  \ft{Why R for Graphics}
+  
+  \centering
+  \huge{It's the best for the price}
+\end{frame}
+
+\begin{frame}
+  \ft{Some Visualisation Tips}
+  \fst{Colours}
+  \begin{itemize}
+  \item 7-10\% of people are red-green colour blind 
+  \end{itemize}
+  \centering
+  \includegraphics[width=.5\linewidth]{graphics/Ishihara_compare_1.jpg}
+\end{frame}
+
+\begin{frame}
+  \ft{Some Visualisation Tips}
+  \fst{Colours}
+  \centering
+<<plot_bad_colour, out.width=".6\\linewidth", echo = FALSE>>=
+
+x <- seq(0, 10, 0.001)
+plot(x, 2*x, col = "yellow", type = "l")
+lines(x, x, col = "chartreuse2")
+@ %def 
+\end{frame}
+
+\begin{frame}
+  \ft{Some Visualisation Tips}
+  \fst{Colours}
+  
+  {\small {\em Sequential palettes}: for ordered data from low to high}
+  \begin{center}  
+    \includegraphics[width = .45\linewidth]{graphics/sequential.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \ft{Some Visualisation Tips} 
+  \fst{Colours} 
+  
+  {\small {\em Qualitative palettes}: suited to representing nominal
+    or categorical data}
+  \begin{center}
+    \includegraphics[width = .6\linewidth]{graphics/qualitative}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \ft{Some Visualisation Tips}
+  \fst{Colours}
+
+  {\small {\em Diverging palettes}: useful when the data has a
+    natural, meaningful break-point (as with correlation values, which
+    are spread around zero)}
+  \begin{center}
+    \includegraphics[width = .6\linewidth]{graphics/diverging}
+  \end{center}
+  See \url{http://colorbrewer2.org/}\\
+  \url{http://tools.medialab.sciences-po.fr/iwanthue/}
+\end{frame}
+
+\begin{frame}
+  \ft{Some Visualisation Tips}
+  Match perceptual and data topology
+\pause  \begin{center}
+  {\small which represents the larger value?}
+<<topo, out.width=".6\\linewidth", fig.width=10>>=
+
+oldpar <- par(mfrow = c(2, 2), mar = c(1, 1, 1, 1))
+
+##1
+plot(1:10, 1:10, type = "n", xlab = "", ylab = "", xaxt="n", yaxt = "n")
+draw.circle(3, 5, 1, col = "black")
+draw.circle(7, 5, 2, col = "black")
+
+##2
+plot(1:10, 1:10, type = "n", xlab = "", ylab = "", xaxt="n", yaxt = "n")
+draw.circle(8, 5, 2, col = "black")
+rect(1.5, 2.5, 5, 7.5, col = "black")
+
+##3
+plot(1:10, 1:10, type = "n", xlab = "", ylab = "", xaxt="n", yaxt = "n")
+draw.circle(3, 5, 2, col = "lightpink2")
+draw.circle(8, 5, 2, col = "violetred3")
+
+##4
+plot(1:10, 1:10, type = "n", xlab = "", ylab = "", xaxt="n", yaxt = "n")
+draw.circle(3, 5, 2, col = "seagreen4")
+draw.circle(8, 5, 2, col = "mediumorchid4")
+
+par(oldpar)
+@ %def 
+\end{center}
+\end{frame}
+
+\begin{xframe}
+  \ft{Some Visualisation Tips}
+  \fst{Avoid junk charts}
+  
+  Example: Death rates in Virginia 
+
+  \centering
+<<junk, fig.width = 10, fig.height = 7, out.width = "0.8\\linewidth">>=
+data(VADeaths)
+
+cloud(VADeaths, panel.3d.cloud = panel.3dbars,
+      xbase = 0.4, ybase = 0.4, zlim = c(0, max(VADeaths)),
+      scales = list(arrows = FALSE, just = "right"), xlab = NULL, ylab = NULL,
+      col.facet = level.colors(VADeaths, at = do.breaks(range(VADeaths), 20),
+                               col.regions = cm.colors,
+                               colors = TRUE),
+      colorkey = list(col = cm.colors, at = do.breaks(range(VADeaths), 20)),
+      screen = list(z = 40, x = -30))
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Some Visualisation Tips}
+  \fst{Avoid junk charts}
+  
+  Example: Death rates in Virginia 
+  \centering
+<<better, fig.width = 10, fig.heigth = 8, out.width = ".8\\linewidth">>=
+n <- length(dr <- c(VADeaths))
+nam <- names(VADeaths)
+d.VAD <- data.frame(
+             Drate = dr,
+             age = rep(ordered(rownames(VADeaths)), length.out = n),
+             gender = gl(2, 5, n, labels = c("M", "F")),
+             site =  gl(2, 10, labels = c("rural", "urban")))
+d.VAD$gender_site <- with(d.VAD, 
+                          factor(paste(site, gender, sep = " ")))
+
+ggplot(d.VAD, aes(gender_site, Drate)) + 
+  geom_bar(stat = "identity", fill = grey(.7)) + 
+  facet_grid(age ~ .) + 
+  coord_flip() +
+  theme_bw()
+
+@ %def 
+\end{xframe}
+
+\begin{frame}
+  \ft{Some Visualisation Tips}
+  \begin{itemize}
+  \item What you see on the screen is not what will appear on paper or
+    on the projector
+  \item Make important comparisons easy
+  \end{itemize}
+\end{frame}
+
+\section{Base Graphics}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \begin{itemize}
+  \item Graphs created using a series of {\em high level} and {\em low
+      level} functions.
+    \begin{itemize}
+    \item High level functions create new plots
+    \item Low level functions add information to an existing plot
+    \end{itemize}
+  \item Customise graphs (line style, symbols, colours, \dots) by
+    specifying graphical parameters
+    \begin{itemize}
+    \item using the \verb=par()= function
+    \item Include graphic options as additional arguments to plotting
+      functions
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \fst{High level functions}
+  
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \verb=plot()=                                     & scatterplot, lineplot              \\
+    \verb=hist()=                                     & Histogram                          \\
+    \verb=boxplot()=                                  & Boxplot                            \\
+    \verb=qqplot()=, \verb=qqline()=, \verb=qqnorm()= & Quantile plots                     \\
+    \verb=pairs()=                                    & Scatter plot matrix                \\
+    \verb=symbols()=                                  & Draw symbols on a plot             \\
+    \verb=dotchart()=, \verb=barplot()=, \verb=pie()= & Dot chart,
+    barplot, pie chart                                                                     \\
+    \verb=curve()=                                    & Draw a curve from a given function \\
+    \verb=contour()=, \verb=filled.contour()=         & Contour plots                      \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \fst{Low level functions}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \verb=points()=   & Add points to a plot                      \\
+    \verb=lines()=    & Add lines to a figure                     \\
+    \verb=text()=     & Add test in the plot region               \\
+    \verb=mtext()=    & Insert text in the figure or outer margin \\
+    \verb=title()=    & Add figure title                          \\
+    \verb=legend()=   & Add a legend                              \\
+    \verb=axis()=     & Customise axis                            \\
+    \verb=abline()=   & Add vertical or horizontal line           \\
+    \verb=segments()= & Add line segment                          \\
+    \dots             &                                           \\
+    \bottomrule    
+  \end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \fst{Main options}
+  See \verb=?par= for the full list
+  \begin{center}
+    \small{
+  \begin{tabular}{lp{8cm}}
+    \toprule
+    {\tt type}                      & 1 character string denoting the plot type, e.g., {\tt
+      'n'} for none, {\tt 'l'} for line, {\tt 's'} for step function,
+    \dots                                                                                   \\
+    \verb=xlim=, \verb=ylim=        & x- and y-limit in the form \verb=c(0, 100)=           \\
+    \verb=main=                     & Main title for the plot                               \\
+    \verb=xlab=, \verb=ylab=        & x- and y-axis labels                                  \\
+    \verb=col=                      & A character string or a number specifying the colours \\
+    \verb=pch=                      & Number referencing a plotting symbol or a character
+    string                                                                                  \\
+    \verb=cex=                      & A number that gives the character expansion of the
+    plot symbols                                                                            \\
+    \verb=cex.axis=, \verb=cex.lab= & character expansion for axis
+    marks, labels                                                                           \\
+    \verb=lty=                      & Line type: 1 for solid, 2 for dashed, \dots           \\
+    \verb=lwd=                      & Line thickness                                        \\
+    \bottomrule
+  \end{tabular}}
+  \end{center}
+\end{frame}
+
+%% \begin{frame}[fragile]
+%%   \ft{The {\tt movies} data set}
+%% <<echo = TRUE, eval = FALSE>>=
+%% ## If needed
+%% install.packages("ggplot2")
+
+%% require(ggplot2)
+%% data(movies)
+
+%% str(movies)
+%% summary(movies)
+%% head(movies)
+%% @ %def 
+
+%% \end{frame}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \fst{Multiple graphs}
+  
+  \begin{itemize}
+  \item Create a $n \times m$ grid of figures using \verb=par()= with
+    arguments \verb=mfrow= or \verb=mfcol=
+    \begin{itemize}
+    \item \verb|mfrow=c(n, m)| adds figures by row
+    \item \verb|mfcol=c(n, m)| adds figures by column
+    \end{itemize}
+  \item Create more complex arrangements using the \verb=layout()= function
+    \begin{itemize}
+    \item \verb=mat=: a matrix object specifying the location of the
+      next N figures on the output device
+    \item \verb=widths= and \verb=heights=: vectors that specify the
+      relative widths and heights of the columns and rows,
+      respectively
+    \end{itemize}
+  \item \verb=split.screen()= is used to create multiple plots and
+    allows you to switch control between plot
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \fst{Math expression}
+  \begin{itemize}
+  \item R is able to add \LaTeX{} like expressions to R graphics
+  \item Use \verb=expression()= to add math expressions to a figure
+  \item The function \verb=bquote()= is used to add expressions and
+    values. Terms inside \verb=.()= are evaluated. The remaining terms
+    are evaluated as math expressions
+  \item See \verb=?plotmath= for more details and examples
+  \end{itemize}
+<<echo = TRUE, eval = FALSE, tidy = FALSE>>=
+plot(1:10, type = "n", xlab = "", ylab = "", 
+     xaxt = "n", yaxt = "n")
+text(5, 8, expression(alpha[1](t) == f^x), cex = 3)
+
+theta <- 2
+text(6, 4, bquote(hat(theta) == .(theta)), cex = 3)
+@ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Base Graphics}
+  \fst{Math expression}
+  \centering
+<<mathplot, out.width = ".6\\textwidth">>=
+plot(1:10, type = "n", xlab = "", ylab = "", 
+     xaxt = "n", yaxt = "n")
+text(5, 8, expression(alpha[1](t) == f^x), cex = 3)
+
+theta <- 2
+text(6, 4, bquote(hat(theta) == .(theta)), cex = 3)
+@ 
+\end{frame}
+
+\section{{\bf ggplot2}}
+
+\begin{xframe}
+  \ft{The {\bf ggplot2} Package}
+  The {\bf ggplot2} package is based on the {\em Grammar of Graphics} (Wilkinson)\\
+  The components of {\bf ggplot2}'s grammar of graphics are
+  \begin{enumerate}
+  \item One or more layers
+    \begin{enumerate}
+    \item Data
+    \item {\em Aes}thetics mappings
+    \item A statistical transformation
+    \item A geometric object
+    \item Position adjustment
+    \end{enumerate}
+  \item A scale for each aesthetic
+  \item A coordinate system
+  \item A facet specification
+  \item Guides (legends)
+  \end{enumerate}
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Layers}
+  
+  \begin{itemize}
+  \item {\tt ggplot} produces an object that is rendered into a plot
+  \item This object consists of some layers
+  \item Each layer may share some arguments with {\tt ggplot} or gets
+    its own input
+  \end{itemize}
+<<layer, eval = FALSE, echo = TRUE>>=
+p <- ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length)) + 
+  geom_point(aes(colour = Species), size = 2) +
+  geom_smooth(method = "lm")
+p            
+
+@ %def 
+\end{xframe}
+
+\begin{xframe}
+  \ft{Layers}
+  \centering
+<<layer2, fig.heigth = 8, fig.width = 10, out.width = ".9\\linewidth">>=
+p <- ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length)) + 
+  geom_point(aes(colour = Species), size = 2) +
+  geom_smooth(method = "lm")
+p            
+
+@ %def 
+\end{xframe}
+
+\begin{xframe}
+  \ft{Components of a layer}
+  
+  {\bf Data and aesthetic mappings}
+  \begin{itemize}
+  \item The {\bf data} are what we want to visualize
+  \item The {\em aes}thetic mappings map the columns of the data.frame
+    to x/y axis, colours, size, \dots
+  \end{itemize}
+<<aes, echo = TRUE, eval = FALSE>>=
+p <- ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length))
+@ %def 
+\end{xframe}
+
+\begin{xframe}
+  \ft{Components of a layer}
+  
+  {\bf A statistical transformation}
+  \begin{itemize}
+  \item A summary of the raw data input
+  \item Somehow implicit in a lot of {\bf ggplot} functions
+  \item Example: identity, binning, smoothing, boxplot, \dots
+  \end{itemize}
+<<stat, echo = TRUE, eval = FALSE>>=
+p + geom_point(aes(colour = Species)) +
+  geom_smooth(method = "lm")
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Components of a layer}
+  
+  {\bf A geometric object}
+  
+  \begin{itemize}
+  \item The type of plot to be created, e.g., points, lines, polygon, \dots
+  \item See functions {\tt geom\_point}, {\tt geom\_line}, {\tt
+      geom\_hist}, \dots
+  \end{itemize}
+<<geom, echo = TRUE, eval = FALSE>>=
+p + geom_point(aes(colour = Species)) +
+  geom_smooth(method = "lm")
+@ %def 
+\end{xframe}
+
+\begin{xframe}
+  \ft{Components of a layer}
+  
+  {\bf Position}
+  
+  \begin{itemize}
+  \item Determines how different parts of a layer are positioned
+    relative to each other, e.g, identity, jitter, dodge
+  \end{itemize}
+<<eval = FALSE, echo = TRUE>>=
+g1 <- ggplot(iris, aes(x = Petal.Width, fill = Species)) + geom_bar()
+g2 <- ggplot(iris, aes(x = Petal.Width, fill = Species)) + 
+  geom_bar(position = "fill")
+grid.arrange(g1, g2, ncol = 2)
+@ %def 
+\end{xframe}
+
+\begin{xframe}
+  \ft{Components of a layer}
+  
+\centering
+
+<<fig.width = 12, fig.heigth = 6, out.width = ".8\\linewidth">>=
+g1 <- ggplot(iris, aes(x = Petal.Width, fill = Species)) + geom_bar()
+g2 <- ggplot(iris, aes(x = Petal.Width, fill = Species)) + 
+  geom_bar(position = "fill")
+grid.arrange(g1, g2, ncol = 2)
+@ %def 
+  
+\end{xframe}
+
+\begin{xframe}
+  \ft{Other elements}
+  
+  \begin{description}
+  \item[Scaling] How each input value maps to the specified aesthetic,
+    e.g., logarithmic, continuous, ordinal, limits, labels
+  \item[Coordinates] How positions of things are mapped to positions
+    on the screen
+  \item[Facets] Allows arranging different graphs in a grid/panel
+  \end{description}
+\end{xframe}
+
+\begin{xframe}
+  \ft{Example}
+  
+  \centering
+<<echo = TRUE, eval = FALSE, fig.width = 8, fig.heigth = 5, out.width = ".6\\linewidth", fig.align = "center">>=
+
+p <- ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length)) +
+  geom_point(aes(colour = Species), size = 3, alpha = .5) +
+  geom_smooth(method = "lm") +
+  scale_x_continuous("Sepal Length", limits = c(5, 10), 
+                    breaks = 5:10) + 
+  scale_y_reverse("Petal Length") + 
+  scale_colour_brewer("Size\nof the\nplants", type = "qual", 
+                      labels = c("Small", "Medium", "Big"))
+p
+@ %def 
+See all the options and geoms at \url{http://docs.ggplot2.org/current/index.html}
+\end{xframe}
+
+\begin{xframe}
+  \ft{Example}
+  
+  \centering
+<<big_example, echo = FALSE, fig.width = 8, fig.heigth = 5, out.width = ".6\\linewidth", size = "tiny", fig.align = "center">>=
+
+p <- ggplot(data = iris, aes(x = Sepal.Length, y = Petal.Length)) +
+  geom_point(aes(colour = Species), size = 3, alpha = .5) +
+  geom_smooth(method = "lm") +
+  scale_x_continuous("Sepal Length", limits = c(5, 10), 
+                    breaks = 5:10) + 
+  scale_y_reverse("Petal Length") + 
+  scale_colour_brewer("Size\nof the\nplants", type = "qual", 
+                      labels = c("Small", "Medium", "Big"))
+p
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Example}
+<<big_example2, echo = TRUE, fig.width = 10, fig.heigth = 5, out.width = ".5\\linewidth", size = "tiny", fig.align = "center">>=
+p + facet_grid(. ~ Species)
+@   
+\end{xframe}
+
+
+%% \section{Graphics}
+
+%% \begin{xframe}
+%%   \ft{One continuous variable}
+%%   \fst{Histogram}
+  
+%% <<hist1, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% ggplot(iris, aes(x = Petal.Length)) + geom_histogram()
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One continuous variable}
+%%   \fst{Histogram}
+  
+%% <<hist2, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% ggplot(iris, aes(x = Petal.Length)) + geom_histogram(binwidth = 0.1)
+%% @ %def 
+
+%% \end{xframe}
+  
+
+%% \begin{xframe}
+%%   \ft{One continuous variable}
+%%   \fst{Boxplot}
+  
+%% <<box1, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% ggplot(iris, aes(x = 1, y = Petal.Length)) + geom_boxplot()
+%% @ %def 
+  
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One continuous variable}
+%%   \fst{Boxplot}
+  
+%% <<box2, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% ggplot(iris, aes(x = 1, y = Petal.Length)) + 
+%%   geom_boxplot() + geom_jitter()
+%% @ %def 
+  
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One continuous variable}
+%%   \fst{Violin Plot}
+  
+%% <<violin1, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% ggplot(iris, aes(x = 1, y = Petal.Length)) + geom_violin() 
+%% @ %def 
+  
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One continuous variable}
+%%   \fst{Violin Plot}
+  
+%% <<violin2, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% ggplot(iris, aes(x = 1, y = Petal.Length)) + 
+%%   geom_violin() + geom_jitter() 
+%% @ %def 
+  
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One binary variable}
+%%   \fst{Barchart}
+  
+%% <<bar, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% iris$Petal.Length.f <- factor(iris$Petal.Length > 4.8, 
+%%                               levels = c(FALSE, TRUE), 
+%%                               labels = c("Petal length <= 4.8", 
+%%                               "Petal.Length > 4.8"))
+%% ggplot(iris, aes(Petal.Length.f)) + geom_bar(width = 0.5)
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One binary variable}
+%%   \fst{Dotchart}
+  
+%% <<dot, echo = TRUE, fig.align = "center", out.width = ".4\\linewidth">>=
+%% df <- iris %>% group_by(Petal.Length.f) %>% summarise(n = n()) 
+%% ggplot(df, aes(x = Petal.Length.f, y = n)) + geom_point(size = 4) + 
+%%   coord_flip()
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One binary VS one continuous variable}
+%%   \fst{Side-by-side boxplot/violin plot}
+  
+%% <<box3, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(x = Species, y = Petal.Length)) + geom_boxplot()
+
+%% @ %def 
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One binary VS one continuous variable}
+%%   \fst{barchart}
+  
+%% <<bar3, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(x = Species, y = Petal.Length)) + 
+%%   geom_bar(stat = "identity", width = .4)
+
+%% @ %def 
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One binary VS one continuous variable}
+%%   \fst{barchart}
+  
+%% <<bar4, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(x = Petal.Length, fill = Species)) + 
+%%   geom_bar()
+
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{One binary VS one continuous variable}
+%%   \fst{barchart}
+  
+%% <<bar5, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(x = Petal.Length, fill = Species)) + 
+%%   geom_bar(position = "dodge")
+
+%% @ %def 
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Two binary variables}
+%%   \fst{Barchart}
+
+%% <<bar6, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", size = "tiny", fig.width = 10>>=
+%% iris <- mutate(iris, Sepal.Length.f = factor(Sepal.Length > 6.1, 
+%%                      levels = c(FALSE, TRUE),
+%%                      labels = c("Sepal length <= 6.1", "Sepal length > 6.1")))
+%% df <- iris %>% group_by(Sepal.Length.f, Petal.Length.f) %>% 
+%%   summarise(n = n())
+%% ggplot(df, aes(x = Sepal.Length.f, y = n, fill = Petal.Length.f)) + 
+%%   geom_bar(stat = "identity")
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Two binary variables}
+%%   \fst{Barchart}
+
+%% <<bar7, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(df, aes(x = Sepal.Length.f, y = n, fill = Petal.Length.f)) + 
+%%   geom_bar(stat = "identity", position = "dodge")
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Two binary variables}
+%%   \fst{Dotchart}
+
+%% <<dot7, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(df, aes(y = Sepal.Length.f, x = n, colour = Petal.Length.f)) + 
+%%   geom_point(size = 6)
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Two continuous variables}
+%%   \fst{Scatterplot}
+  
+%% <<scat1, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(Petal.Length, Sepal.Length)) + geom_point(size = 2.5)
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Two continuous variables}
+%%   \fst{Scatterplot}
+  
+%% <<scat2, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(Petal.Length, Sepal.Length)) + geom_point(size = 2.5) +
+%%   geom_smooth()
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Multivariate Data}
+  
+%%   Depending on the types of the variables, you can use
+%%   \begin{itemize}
+%%   \item Size (continuous variables)
+%%   \item Colours (continuous and binary variables)
+%%   \item Facets (binary variables)
+%%   \item {\color{gray} 3D}
+%%   \end{itemize}
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Multivariate Data}
+
+%% <<3d1, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+%% ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, colour = Species)) +
+%%          geom_point(size = 2.5) + geom_smooth()
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Multivariate Data}
+
+%% <<3d2, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.height = 4, fig.width = 10>>=
+%% ggplot(iris, aes(x = Petal.Length, y = Sepal.Length)) +
+%%          geom_point(size = 2.5) + geom_smooth() +
+%%          facet_grid(. ~ Species)
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Multivariate Data}
+
+%% <<3d3, echo = TRUE, fig.align = "center", out.width = ".5\\linewidth", fig.width = 10>>=
+
+%% ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, 
+%%                  colour = Petal.Width, size = Sepal.Width)) +
+%%   geom_point() + 
+%%   scale_size("Sepal\nwidth", range = c(2, 8)) +
+%%   scale_colour_gradient("Petal\nwidth", high = "darkblue", low = "pink")
+
+%% @ %def 
+
+%% \end{xframe}
+
+%% \begin{xframe}
+%%   \ft{Your turn}
+  
+%%   Consider the Measle data set (Project Tycho,
+%%   \url{https://www.tycho.pitt.edu/}) that provides weekly incidence
+%%   rates of measle in the US from 1928 to 2003.
+%%   \begin{enumerate}
+%%   \item Devise a plot that shows whether there is a seasonal pattern
+%%     in the data
+%%   \item A vaccine for measle became available in 1963. Create a
+%%     graphic that shows the evolution of the measle incidence over
+%%     time. 
+%%   \end{enumerate}
+
+  
+%% \end{xframe}
+
+\end{document}

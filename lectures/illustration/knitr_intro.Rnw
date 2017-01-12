@@ -1,0 +1,16 @@
+\documentclass{article}
+
+\begin{document}
+
+Some R Code:
+<<>>=
+x <- rnorm(1000)
+@ 
+
+Let's display an histogram of {\tt x}
+<<fig_path = "graphics", caption = "An histogram of x", out.width = ".5\\linewidth", fig.align = "center">>=
+hist(x)
+@ %def 
+
+
+\end{document}

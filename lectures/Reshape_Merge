@@ -1,0 +1,648 @@
+\documentclass[paper=screen,mathserif]{beamer}
+
+\usetheme{CambridgeUS} 
+\useinnertheme{circles}
+\useoutertheme[footline=authortitle,subsection = false]{miniframes}
+\setbeamercolor{palette tertiary}{fg=white, bg=white!42!black}
+\setbeamercolor{alerted text}{fg=red!73!black}
+
+%%%%%%
+%\usepackage{Sweave}
+\usepackage{natbib}     % for references
+\usepackage[osf]{sourcesanspro}
+\usepackage{sourcecodepro}
+\usepackage{booktabs}
+\usepackage{eulervm}
+%\renewcommand{\ttdefault}{sourcecodepro}
+\usepackage{import}
+\usepackage{prodint}
+\usepackage{bbm}
+\usepackage{tabularx}
+\usepackage{dcolumn}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage{graphicx,rotating,epsfig,multirow,multicol,hhline}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+
+\newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\tiny\ttfamily, % Standardschrift
+  % numbers=left,               % Ort der Zeilennummern
+  %numberstyle=\tiny,          % Stil der Zeilennummern
+  % stepnumber=2,               % Abstand zwischen den Zeilennummern
+  numbersep=5pt,              % Abstand der Nummern zum Text
+  tabsize=2,                  % Groesse von Tabs
+  extendedchars=true,         %
+  breaklines=true,            % Zeilen werden Umgebrochen
+  keywordstyle=\color{blue},
+  frame=b,         
+  stringstyle=\color{white}\ttfamily, % Farbe der String
+  showspaces=false,           % Leerzeichen anzeigen ?
+  showtabs=false,             % Tabs anzeigen ?
+}
+
+\usepackage{subcaption}
+
+\newcommand{\ft}[1]{\frametitle{#1}}
+\newcommand{\fst}[1]{\framesubtitle{#1}}
+
+\newenvironment{xframe}[1][]
+{\begin{frame}[fragile,environment=xframe]
+    \frametitle{#1}}
+  {\end{frame}}
+
+
+\title[Reshape and Merge]{Data Reshaping and Merging}
+
+\author{Arthur Allignol}
+
+\institute[]{\scriptsize{\url{arthur.allignol@uni-ulm.de}}}
+
+\date{}
+%%%%%%
+
+\makeatletter
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor%~~\beamer@ifempty{\insertshortinstitute}{}{(\insertshortinstitute)}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatother
+
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+%%%%%% title page
+\newcommand{\titlep}{yes}  % for titlepagelayout
+
+{
+\renewcommand{\insertframenumber}{}   % no page number on titlepage
+\begin{frame}
+\addtocounter{framenumber}{-1}
+\titlepage
+\end{frame}
+}
+
+<<setup, include = FALSE>>=
+require(knitr)
+opts_chunk$set(fig.path = "graphics/", echo = TRUE, results = "markup",
+               size = "scriptsize")
+require(Amisc)
+require(xtable)
+require(dplyr)
+require(data.table)
+@ 
+
+\section{Data Reshaping}
+
+\begin{frame}
+  \ft{Data Reshaping}
+  An important operation in R
+  \begin{itemize}
+  \item Most R functions expect their input (usually data frames) to
+    be arranged in particular ways
+  \item It is the responsibility of the user to ensure that the data
+    are in the appropriate form
+  \item For instance, data for multiple groups are organised as
+    columns, with a column for each group
+  \item Most R functions expect values to be in {\bf one} column with
+    an additional column specifying the groups  
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Long versus Wide Format} 
+  
+  Useful concept for, e.g., {\em longitudinal studies}, in which a
+  patient may have several measurements over time
+  \begin{description}
+  \item[Wide] If all the measurements for a single individual are in
+    the same row, the data are said to be {\bf wide}
+    \small{
+\begin{verbatim}
+id visit1 visit2
+1      90     95
+2      80     78
+\end{verbatim}}
+  \item[Long] If each measurement is in a different row, the data are
+    said to be in the {\bf long} format
+\small{
+\begin{verbatim}
+id visit measure
+ 1     1      90
+ 1     2      95
+ 2     1      80
+ 2     2      78
+\end{verbatim}}
+  \end{description}
+  Most data sets are delivered in the wide format, modelling is done
+  in the long format
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt stack} and {\tt unstack} Functions}
+  
+  \verb=stack= and \verb=unstack= are simple functions (i.e., not very
+  flexible) that permits to transform data in the wide format to long
+  (\verb=stack=) and vice versa (\verb=unstack=)
+<<stack1, size = "scriptsize">>=
+data <- data.frame(group1 = rnorm(5, 10, 5),
+                   group2 = rnorm(5, 10, 5),
+                   group3 = rnorm(5, 10, 5))
+data
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt stack} and {\tt unstack} Functions}
+
+<<stack2, size = "scriptsize">>=
+sdata <- stack(data)
+head(sdata)
+@ %def 
+
+{\small The select option permits to select variables from the
+  original data set}
+<<stack3, size = "scriptsize">>=
+head(stack(data, select = -group1))
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt stack} and {\tt unstack} Functions}
+  
+<<stack4, size = "scriptsize">>=
+stack(data, select = c(group1, group3))
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt stack} and {\tt unstack} Functions}
+  
+  The \verb=unstack= function does the inverse operation
+<<unstack1, size = "scriptsize">>=
+unstack(sdata)
+@ %def 
+{\small The \verb=form= argument is a formula that specifies the
+  vector to be unstacked (LHS) and the indicator of the groups to
+  create (RHS)} 
+<<unstack2, size = "scriptsize">>=
+unstack(sdata, form = values ~ ind)
+@ %def 
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  
+  The \verb=reshape= function performs the long $\rightarrow$ wide and
+  wide $\rightarrow$ long transformations
+  \begin{itemize}
+  \item Motivated by longitudinal data (repeated measurements) 
+  \item Very flexible function (maybe too much)
+  \item {\color{gray} Google very useful for using this function} 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+<<reshape0, echo = FALSE>>=
+usp <- data.frame(type=rownames(USPersonalExpenditure),
+                  USPersonalExpenditure,row.names=NULL)
+@ %def 
+
+As an example, consider a data set on US personal expenditure
+<<reshape1, size = "scriptsize">>=
+usp
+@ %def 
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  Useful arguments for wide to long transformations
+  \begin{itemize}
+  \item \verb=varying=: names of sets of variables in the wide format
+    that correspond to single variables in long format. Can be a list
+    of names (see later)
+  \item \verb=v.names=: The name we wish to give the variable
+    containing these values in our long dataset
+  \item \verb=timevar=: The name we wish to give the variable
+    describing the different times or metrics
+  \item \verb=times=: the values this variable will have
+  \item \verb=ids=: Values describing the different individuals
+  \item \verb=direction=: Character string indicating the direction of
+    the transformation; either \verb="wide"= or \verb="long"=
+  \item \verb=times=, \verb=split=, \verb=sep=
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+  {\small Only specifying \verb=varying= (as a list of variable names) and
+  \verb=direction= works}
+<<reshape2, size = "tiny">>=
+rr <- reshape(usp, varying = list(names(usp)[-1]), direction = "long")
+head(rr)
+@ %def 
+{\small But}
+<<reshape3, size = "scriptsize">>=
+reshape(usp, varying = names(usp)[-1], direction = "long")
+@ %def
+{\small If \verb=varying= is a vector of column names, \verb=reshape=
+  attempts to guess the \verb=v.names= and \verb=times= from these names}
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+
+<<reshape4, size = "scriptsize">>=
+rr2 <- reshape(usp, varying = list(names(usp)[-1]), idvar = "type",
+               times = seq(1940, 1960, 5), v.names = "expenditure", 
+               direction = "long")
+head(rr2)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+<<reshape5, size = "scriptsize">>=
+rr3 <- reshape(usp, varying = names(usp)[-1], idvar = "type",
+               times = seq(1940, 1960, 5), v.names = "expenditure", 
+               direction = "long")
+head(rr3)
+@ %def
+
+\pause
+
+Specifying a vector of names in \verb=varying= now works because we
+also specify how the resulting variable should be named
+(\verb=v.names=)
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+
+  The \verb=split= argument can be used to automatically determine the
+  values for the times and names for the variables containing the
+  values. It is a list with 3 components
+  \begin{itemize}
+  \item \verb=regexp=: regular expression used to split the names used
+    in \verb=varying=
+  \item \verb=include= Logical that decides whether splitting occurs
+    after the first character of the matched string
+  \item Optionally \verb=fixed=: Logical; Fixed-string matching
+  \end{itemize} 
+<<reshape6, size = "scriptsize">>=
+rr4 <- reshape(usp, varying = names(usp)[-1], idvar = "type",
+               split = list(regexp = "X", include = TRUE), 
+               direction = "long")
+head(rr4)
+@ %def 
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+  The \verb=sep= argument is sometimes useful to help \verb=reshape=
+  automagically find the \verb=v.names=
+
+<<reshape7, size = "scriptsize">>=
+rr5 <- reshape(usp, varying = names(usp)[-1], idvar = "type",
+               sep = "",
+               direction = "long")
+head(rr5)
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Wide $\rightarrow$ Long Transformation}
+  
+  Reshape()'d data have additional attributes so that the inverse
+  transformation is easy 
+<<reshape8, size = "scriptsize">>=
+reshape(rr2)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+
+<<reshape_wide0, size = "scriptsize">>=
+longdat <- data.frame(id = as.integer(mapply(rep, 1:3, 3)), 
+                      visit = rep(1:3, 3),
+                      x = rnorm(9), y = rnorm(9))
+longdat
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+  
+  Arguments needed (beside the data set to reshape)
+  \begin{itemize}
+  \item \verb=idvar=: names of variable that define the experimental
+    units
+  \item \verb=v.names=: Variables that are used to create the multiple
+    variables in the wide format
+  \item \verb=timevar= identifies the ``time'' variable for the
+    repeated measurements
+  \item \verb=direction=: \verb="long"= or \verb="wide"=
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+  
+<<reshape_wide1, size = "scriptsize">>=
+widedat <- reshape(longdat, idvar = "id", v.names = c("x", "y"), 
+                   timevar = "visit", direction = "wide")
+widedat
+@ %def 
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{The {\tt reshape} Function}
+  \fst{Long $\rightarrow$ Wide Transformation}
+
+  Wide to long transformation again easy from the reshape()'d data
+<<reshape_wide2, size = "scriptsize">>=
+reshape(widedat)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Your Turn}
+
+  Consider the \verb=mammaca= data set
+  \begin{itemize}
+  \item Based on a real study on mammary carcinoma (the variable names
+    are authentic)
+  \item 65 women were followed for 4 visits
+  \item We want to look at the evolution of all the variables over the
+    visits
+  \end{itemize}
+  {\bf Reshape the data in the long format} 
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Your Turn}
+
+  Consider the {\tt transplant} data set. It contains informations on
+  the survival of patients on the waiting list for the Stanford heart
+  transplant program. Important variables are
+  \begin{description}
+    \item[{\tt fustat}] Follow up status (1 dead; 0 alive at the end
+      of the study)
+    \item[{\tt futime}] Follow up time
+    \item[{\tt wait.time}] Waiting time until transplant ({\tt NA} if
+      no transplant
+    \item[{\tt transplant}] Transplant status (0 no transplant, 1
+      transplanted at {\tt wait.time})
+  \end{description}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Your Turn}
+
+  To be analysed correctly, these data need to be transformed in some
+  kind of long format. Consider 2 individuals as illustration
+{\scriptsize
+\begin{verbatim}
+id   accept.dt      age surgery fustat futime wait.time transplant
+1   1967-11-15 30.84463       0      1     49        NA          0
+4   1968-03-28 40.26283       0      1     38        35          1
+\end{verbatim}}
+
+  The resulting data set should look like
+  {\scriptsize
+\begin{verbatim}
+id   accept.dt      age surgery status start stop transplant
+1   1967-11-15 30.84463       0      1     0   49          0
+2   1968-03-28 40.26283       0      0     0   35          0
+2   1968-03-28 40.26283       0      1     35  38          1
+\end{verbatim}}
+
+\end{frame}
+
+\section{Combining and Merging}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}
+  
+  At the most basic level, two or more data frames can be combined by
+  rows using \verb=rbind=, or by columns using \verb=cbind=
+  \begin{description}
+  \item[rbind] Data frames must have the same number of columns
+  \item[cbind] The data must have the same number of rows
+  \end{description} 
+<<comb0, size = "scriptsize">>=
+d1 <- data.frame(x = rnorm(4), y = sample(letters, 4, replace = FALSE))
+d2 <- data.frame(x = rnorm(4), y = sample(letters, 4, replace = FALSE))
+d1
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt cbind}}
+<<comb1, size = "scriptsize">>=
+cbind(d1, d2)
+@ %def 
+{\small Duplicate column names are not detected}
+\pause 
+<<comb2, size = "scriptsize">>=
+cbind(d1, z = c(1, 2))
+@ %def 
+{\small Smaller vectors/data are recycled}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt rbind}}
+  
+  For using \verb=rbind=, names and classes of values to be joined
+  must match 
+<<rbind1, size = "scriptsize">>=
+rbind(d1, d2)
+@ %def 
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt rbind}}
+  
+<<rbind2, size = "scriptsize">>=
+d1$y <- factor(d1$y)
+d2$y <- factor(d2$y)
+rbind(d1, d2)
+@ %def 
+It works!
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Combining Data Frames}  
+  \fst{{\tt rbind}}
+<<rbind3, size = "tiny">>=
+(d3 <- rbind(d1, data.frame(x = "X", y = 12)))
+sapply(d3, class)
+@ %def 
+<<rbind4, size = "scriptsize">>=
+rbind(d1, data.frame(y = "X", d = 12))
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+  
+  For more complicated tasks, the \verb=merge= function can be used
+  \begin{itemize}
+  \item The default behaviour of merge is to join together rows of the
+    data frames based on the values of all of the variables (columns)
+    that the data frames have in common ({\em natural join})
+  \item When called without argument, \verb=merge= only returns rows
+    which have observations in both data frames
+<<merge0, size = "scriptsize">>=
+dd1 <- data.frame(a = c(1,2,4,5,6), x = c(9,12,14,21,8))
+dd2 <- data.frame(a=c(1,3,4,6),y=c(8,14,19,2))
+merge(dd1, dd2)
+@ %def 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+  
+  To change the default behaviour the arguments
+  \begin{itemize}
+  \item \verb|all = TRUE|: Includes all rows ({\em full outer join})
+  \item \verb|all.x = TRUE|: Includes all rows of the first data frame
+    ({\em left outer join})
+  \item \verb|all.y = TRUE|: Includes all rows of the second data frame
+    ({\em right outer join})
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+
+<<merge1, size = "tiny">>=
+merge(dd1, dd2, all = TRUE)
+@ %def
+\pause
+<<merge2, size = "tiny">>=
+merge(dd1, dd2, all.x = TRUE)
+@ %def 
+\pause
+<<merge3, size = "tiny">>=
+merge(dd1, dd2, all.y = TRUE)
+@ %def 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \ft{Merge Data Frames}
+  \begin{itemize}
+  \item The \verb=by= argument permits to specify the name of the
+    variables that should be used for the merging.
+  \item If the merging variables have different names in the data
+    frames to merge, the \verb=by.x= and \verb=by.y= arguments can be
+    used
+  \end{itemize} 
+<<merge4, size = "scriptsize">>=
+dd1$PAT <- letters[1:5]
+dd2$id <- letters[3:6]
+merge(dd1, dd2, by.x = c("PAT"), by.y = c("id"))
+@ %def 
+\pause
+Note the new variables \verb=a.x= and \verb=a.y=
+  
+\end{frame}
+
+\begin{xframe}
+  \ft{Merge with {\bf dplyr}}
+  
+  {\bf dplyr} includes some functions for merging data sets
+  \begin{description}
+  \item[{\tt inner\_join}] Equivalent to {\tt merge} without arguments
+  \item[{\tt left\_join}] Equivalent to {\tt merge} with {\tt all.x = TRUE}
+  \item[{\tt right\_join}] Equivalent to {\tt merge} with {\tt all.y = TRUE}
+  \item[{\tt full\_join}] Equivalent to {\tt merge} with {\tt all = TRUE}
+  \end{description}
+
+<<>>=
+left_join(dd1, dd2, by = c("PAT" = "id"))
+@ %def 
+
+\end{xframe}
+
+\begin{xframe}
+  \ft{Merge with {\bf data.table}}
+  
+  \begin{itemize}
+  \item A {\tt merge} function is available in the {\bf data.table}
+    package.
+  \item It works in the same way as the base function
+  \end{itemize}
+\end{xframe}
+
+\begin{frame}
+  \ft{Your Turn}
+  
+\end{frame}
+
+\end{document}
+
+<<>>=
+
+@ 

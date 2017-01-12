@@ -1,0 +1,226 @@
+\documentclass[a4,11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+%% \title{Analysis of the {\ttfamily GSOEP9402} data}
+%% \author{Arthur Allignol}
+%% \date{}
+
+\usepackage{booktabs}
+\usepackage[osf]{sourcesanspro}
+\usepackage{sourcecodepro}
+\usepackage[T1]{fontenc}
+%\renewcommand*{\ttdefault}{sourcecodepro}
+\usepackage{subcaption}
+\usepackage{graphicx,rotating,epsfig,multirow,multicol,hhline}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{url}
+\usepackage{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{sfmath}
+
+
+\def\bea{\begin{eqnarray*}}
+\def\eea{\end{eqnarray*}}
+%Dense format
+\setlength{\parindent}{0em} \setlength{\textwidth}{16cm} \setlength{\textheight}{25cm}
+\setlength{\topmargin}{-0.5cm} \setlength{\oddsidemargin}{0cm} \setlength{\headheight}{0cm}
+\setlength{\headsep}{0cm}
+\newcommand{\nat}{{\it I\hspace{-0.12cm}N}}
+\pagestyle{empty}
+
+
+\newcommand{\p}{{\rm P}}
+\newcommand{\erw}{{\rm E}}
+\newcommand{\var}{{\rm var}}
+\newcommand{\eins}{{\bf 1}}%{\mathbf{1}}
+\newcommand{\dif}{{\rm d}}
+\newcommand{\cif}{{\rm CIF}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\D}{\mathrm{d}}
+
+%Special commands:
+\newcommand{\Bin}{\operatorname{Bin}} % Binomial Distribution
+\newcommand{\NegBin}{\operatorname{NegBin}} % Negative Bin
+\newcommand{\HypGeom}{\operatorname{HypGeom}} % Hypergeometric Distribution
+\newcommand{\Pois}{\operatorname{Po}} % Hypergeometric Distribution
+\newcommand{\Po}{\operatorname{Po}} %
+\newcommand{\Exp}{\operatorname{Exp}} %
+\newcommand{\Par}{\operatorname{Par}} %
+\newcommand{\Ga}{\mathcal{G}a} %
+\newcommand{\Be}{\mathcal{B}e} %
+\newcommand{\Var}{\operatorname{Var}} %
+\newcommand{\E}{\operatorname{E}} %
+\newcommand{\Cov}{\operatorname{Cov}} %
+\newcommand{\MSE}{\operatorname{MSE}}
+
+\DeclareMathOperator{\Nor}{N} % Normal -
+\DeclareMathOperator{\Log}{Log} % Logistische Verteilung -
+\newcommand{\ml}[2][1]{% % für Maximum-Likelihood-Schätzer von #1
+\ifthenelse{#1 = 1}%
+ {\hat{#2}_{\scriptscriptstyle{ML}}}%
+ {\hat{#2}^{#1}_{\scriptscriptstyle{ML}}}% z.B. für sigmadach^2
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Environment for Aufgaben
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter{ka}
+
+
+\newtheorem{exercise}{Problem}
+\newenvironment{aufgabe}{\begin{exercise}\sf}{\end{exercise} \bigskip}
+
+\newcommand{\footer}{ \vfill
+  \mbox{}\hrulefill\\
+  Upload your solutions until the 30.6.2016, 10h00 s.t. on
+  Moodle. Only one solution per group. Please upload the source files
+  as well as the solutions.}
+%\xxivtime   Uhrzeit für letzte Änderung
+
+\pagestyle{empty}
+
+\renewcommand{\labelenumi}{(\alph{enumi})}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\renewcommand{\baselinestretch}{1}
+
+\hrulefill\\
+{\bf WiMa-Praktikum II -- Stochastic} \hspace{\fill} Summer term 2016\\
+Arthur Allignol \hspace{\fill} 24.6.2016\\[-1.2ex]
+\mbox{}\hrulefill\\
+\newline \renewcommand{\baselinestretch}{1}
+\setcounter{ka}{0} \vspace{-0.5cm}
+
+
+
+\begin{center}
+\large{{\bf Exercise Sheet 6 --- Survival analysis}}
+\end{center}
+
+\begin{aufgabe}{{\bf German Breast Cancer Study Group 2}}
+
+The data {\tt GBSG2} are available in package {\bf TH.data}. The study
+investigated the effects of hormonal treatment with Tamoxifen in women
+suffering from node-positive breast cancer in a randomized clinical
+trial. The outcome of interest is recurrence-free survival (the time
+until recurrence of the cancer or death, whatever comes first). The
+data contain the following information for 686 women
+
+\begin{itemize}
+\item {\tt horTh} hormonal therapy, a factor at two levels 'no' and 'yes'.
+
+     
+\item {\tt age} of the patients in years.
+
+     
+\item {\tt menostat} menopausal status, a factor at two levels 'pre'
+  (premenopausal) and 'post' (postmenopausal).
+
+\item      {\tt tsize} tumor size (in mm).
+
+\item      {\tt tgrade} tumor grade, a ordered factor at levels 'I < II < III'.
+
+\item      {\tt pnodes} number of positive nodes.
+
+     
+\item {\tt progrec} progesterone receptor (in fmol).
+
+     
+\item {\tt estrec} estrogen receptor (in fmol).
+
+     
+\item {\tt time} recurrence free survival time (in days).
+
+     
+\item {\tt cens} censoring indicator (0- censored, 1- event).
+\end{itemize}
+  
+\begin{enumerate}
+\item Find a good model for the data
+\item Diagnose the model. Do some variables display time-dependent
+  effects and/or non-linear relationships? If so can you fix it? 
+\end{enumerate}
+\end{aufgabe}
+
+\begin{aufgabe}{{\bf Stanford heart transplant program}}
+
+  Consider the data set {\tt heart.csv} that contain information about
+  patients on the waiting list for a heart transplant. The goal is to
+  assess whether a heart transplant increases the chances of
+  survival. The data set contain the following variables:
+  \begin{itemize}
+  \item {\tt accept.dt}:   acceptance into program (waiting list)    
+  \item {\tt tx.date}:     transplant date             
+  \item {\tt fu.date}:     end of followup             
+  \item {\tt fustat}:      dead (1) or alive (0)               
+  \item {\tt transplant}:  transplant indicator        
+  \end{itemize}
+  As patients have to wait before getting a transplant, {\tt
+    transplant} is a time-dependent variable.
+
+  \begin{enumerate}
+  \item Transform the data in such a way that you can include {\tt
+      transplant} as a time-dependent variable in a Cox model.
+  \item Fit the model and conclude
+  \item Analyse the transplant variable as if it was known at
+    baseline, thus ignoring that transplant is a time-dependent
+    variable. Interpret.
+  \end{enumerate}
+
+  
+\end{aufgabe}
+
+
+\end{document}

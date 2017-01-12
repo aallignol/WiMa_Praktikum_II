@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Mixed-effects models</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Mixed-effects models</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="the-normal-linear-model" class="slide level2">
+<h1>The normal linear model</h1>
+<p>For the <span class="math inline">\(i\)</span>-th observation, the linear model is</p>
+<p><span class="math display">\[ 
+y_i = \beta_0 + \beta_1x_{1i} + \dots + \beta_qX_{qi} + \varepsilon_i,
+\]</span></p>
+<p>with <span class="math inline">\(\varepsilon_i \sim {\cal N}(0, \sigma^2)\)</span></p>
+<p>Written in a matrix form</p>
+<p><span class="math display">\[{\mathbf{y}}= {\mathbf{X}}{\boldsymbol\beta}+ {\boldsymbol\varepsilon{}}\]</span></p>
+<p>with <span class="math inline">\({\boldsymbol\varepsilon{}}\sim {\cal N}(0, {\mathbf{I}}\sigma^2)\)</span> and</p>
+<ul>
+<li><span class="math inline">\({\mathbf{y}}= (y_1, \dots, y_n)\)</span> the response vector</li>
+<li><span class="math inline">\({\mathbf{X}}\)</span> the design matrix</li>
+<li><span class="math inline">\({\boldsymbol\beta}= (\beta_1, \dots, \beta_p)^{T}\)</span> the regression coefficients</li>
+</ul>
+</section><section id="introduction-1" class="slide level2">
+<h1>Introduction</h1>
+<p><em>Hierarchical data</em> are collected when the sampling is performed at two or more levels, one <em>nested</em> within the other. E.g.,</p>
+<ul>
+<li>Students within schools (2 levels)</li>
+<li>Students within classrooms within schools (3 levels)</li>
+<li><p>Individuals within communities within nations (3 levels)</p>
+<p>(Non-nested data are also possible. E.g., high-school students who each have multiple teachers)</p></li>
+</ul>
+</section><section id="introduction-2" class="slide level2">
+<h1>Introduction</h1>
+<p><em>Longitudinal data</em> are collected when individuals are followed over time and several measurements are performed.</p>
+<ul>
+<li>Annual data on employement and income for a sample of adults</li>
+<li>Headache score at several visits following treatment</li>
+</ul>
+<p>⇒ In these examples it is generally not reasonable to assume that observations within the same unit (e.g., school) or measurements within the same individual, are independent of each other</p>
+</section><section id="introduction-3" class="slide level2">
+<h1>Introduction</h1>
+<p><em>Mixed-effect models</em> allow to take into account dependencies on hierarchical, longitudinal and other dependent data.</p>
+<ul>
+<li><p>Unlike the standard linear model, mixed-effect models include more than one source of random variations, i.e., more than one random effect</p></li>
+<li><p>ANOVAs could accomodate these kind of dependencies but mixed models are more general. They can deal with irregular and missing observations</p></li>
+</ul>
+</section></section>
+<section><section id="linear-mixed-effects-model" class="titleslide slide level1"><h1>Linear mixed-effects model</h1></section><section id="the-linear-mixed-effects-model" class="slide level2">
+<h1>The linear mixed-effects model</h1>
+<p>The <em>Laird-Ware form</em> of the linear mixed model</p>
+<p><span class="math display">\[
+y_{ij} = \beta_0 + \beta_1 x_{1ij} + \dots + \beta_q x_{qij} +
+b_{1i} z_{1ij} + \dots + b_{ri}z_{rij} + \varepsilon_{ij}
+\]</span></p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(y_{ij}\)</span> is the value of the response variable for the <span class="math inline">\(j\)</span>-th of <span class="math inline">\(n_i\)</span> observations in the <span class="math inline">\(i\)</span>-th of <span class="math inline">\(M\)</span> groups or clusters</li>
+<li><span class="math inline">\(\beta_0, \dots, \beta_q\)</span> are the fixed-effects coefficients, which are identical for all groups</li>
+<li><span class="math inline">\(x_{1ij}, \dots, x_{qij}\)</span> are the fixed-effect regressors for observation <span class="math inline">\(j\)</span> in group <span class="math inline">\(i\)</span></li>
+</ul>
+</section><section id="the-linear-mixed-effects-model-1" class="slide level2">
+<h1>The linear mixed-effects model</h1>
+<p><span class="math display">\[
+y_{ij} = \beta_0 + \beta_1 x_{1ij} + \dots + \beta_q x_{qij} +
+b_{1i} z_{1ij} + \dots + b_{ri}z_{rij} + \varepsilon_{ij}
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(b_{1i}, \dots, b_{ri}\)</span> are the random-effect coefficients for group <span class="math inline">\(i\)</span>.</p>
+<ul>
+<li>We assume <span class="math inline">\(b_{ki} \sim {\cal N}(0, \psi_k^2)\)</span>, <span class="math inline">\({\text{cov}}(b_{ki}, b_{k&#39;i}) = \psi_{kk&#39;}\)</span>, and <span class="math inline">\(b_{ki}, b_{ki&#39;}\)</span> independent for <span class="math inline">\(i \neq i&#39;\)</span></li>
+<li>The <span class="math inline">\(b_{ki}\)</span> are thought as random variables, not as parameters. Therefor similar to the errors <span class="math inline">\(\varepsilon_{ij}\)</span></li>
+</ul></li>
+<li><p><span class="math inline">\(z_{1ij}, \dots, z_{rij}\)</span> are the random effects regressors.</p>
+<ul>
+<li>The <span class="math inline">\(z\)</span>s are almost always a subset of the <span class="math inline">\(x\)</span>s</li>
+<li>When there is a random intercept, <span class="math inline">\(z_{1ij} = 1\)</span></li>
+</ul></li>
+<li><p><span class="math inline">\(\varepsilon_{ij}\)</span> is the error for observation <span class="math inline">\(j\)</span> in group <span class="math inline">\(j\)</span></p>
+<ul>
+<li><span class="math inline">\(\varepsilon_{ij} \sim {\cal N}(0, \sigma^2_{ijj})\)</span>. We assume <span class="math inline">\(\varepsilon_{ij}, \varepsilon_{i&#39;j&#39;}\)</span> are independent for <span class="math inline">\(i  \neq i&#39;\)</span></li>
+</ul></li>
+</ul>
+</section><section id="the-linear-mixed-effects-model-2" class="slide level2">
+<h1>The linear mixed-effects model</h1>
+<p>The Laird-Ware model in matrix form</p>
+<p><span class="math display">\[
+{\mathbf{y}}_i = {\mathbf{X}}_i{\boldsymbol\beta}+ {\mathbf{Z}}_i{\mathbf{b}}_i + {\boldsymbol\varepsilon{}}_{i}
+\]</span></p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\({\mathbf{y}}_i\)</span> is the <span class="math inline">\(n_i \times 1\)</span> response vector for observations in group <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\({\mathbf{X}}_i\)</span> is the <span class="math inline">\(n_i \times p\)</span> model matrix for the fixed effects for observations in group <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\({\mathbf{b}}\)</span> is the <span class="math inline">\(p \times 1\)</span> vector of fixed effect coefficients</li>
+<li><span class="math inline">\({\mathbf{Z}}_i\)</span> if the <span class="math inline">\(n_i \times r\)</span> model matrix for the random effects for observations in group <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\({\mathbf{b}}_i\)</span> is the <span class="math inline">\(r \times 1\)</span> vector of random effect coefficients for group <span class="math inline">\(i\)</span></li>
+<li><span class="math inline">\({\boldsymbol\varepsilon{}}_i\)</span> id the <span class="math inline">\(n_i \times 1\)</span> vector of errors for observations in group <span class="math inline">\(i\)</span></li>
+</ul>
+<p>We assume that <span class="math inline">\({\mathbf{b}}_i \sim {\cal N}(0, \boldsymbol{\psi})\)</span> and</p>
+<p><span class="math inline">\({\boldsymbol\varepsilon{}}_i \sim {\cal N}(0, \sigma^2\boldsymbol{\Lambda})\)</span>. <span class="math inline">\({\mathbf{I}}_{n_i}\sigma^2\)</span> are the within-group errors that are homoscedastic and independent.</p>
+</section></section>
+<section><section id="inference" class="titleslide slide level1"><h1>Inference</h1></section><section id="inference-1" class="slide level2">
+<h1>Inference</h1>
+<p>Linear mixed-effects models can be estimated by maximum likelihood. However, this method tends to underestimate the variance components. A modified version of maximum likelihood, known as <em>restricted maximum likelihood</em> is therefore often recommended; this provides consistent estimates of the variance components.</p>
+<p>Competing linear mixed-effects models can be compared using a likelihood ratio test. If however the models have been estimated by restricted maximum likelihood this test can only be used if both models have the same set of fixed effects.</p>
+</section><section id="inference-2" class="slide level2">
+<h1>Inference</h1>
+<p>Inference for the <span class="math inline">\(\beta\)</span>s follow from maximum likelihood theory</p>
+<p>Hypothesis testing and confidence intervals less obvious, e.g.,</p>
+<ul>
+<li><em>Testing the random effect</em>: <span class="math inline">\(H_0: \sigma^2 = 0\)</span> → at the boundary of the parameter space</li>
+<li><em>F-tests</em>: degrees of freedom need to be estimated in some ways (except for simple experimental designs)</li>
+</ul>
+</section><section id="model-diagnostic" class="slide level2">
+<h1>Model Diagnostic</h1>
+<p>The normality of the random effects as well as the normality of the residuals need to be checked.</p>
+</section><section id="illustration" class="slide level2">
+<h1>Illustration</h1>
+<ul>
+<li>Data from the 1982 “High School and Beyond” survey, and pertain to 7185 U.S. high-school students from 160 schools — about 45 students on average per school.
+<ul>
+<li>70 of the high schools are Catholic schools and 90 are public schools.</li>
+</ul></li>
+<li>The object of the data analysis is to determine how students’ math achievement scores are related to their family socioeconomic status.
+<ul>
+<li>We will entertain the possibility that the level of math achievement and the relationship between achievement and SES vary among schools.</li>
+<li>If there is evidence of variation among schools, we will examine whether this variation is related to school characteristics - in particular, whether the school is a public school or a Catholic school and the average SES of students in the school.</li>
+</ul></li>
+</ul>
+</section></section>
+<section><section id="longitudinal-studies" class="titleslide slide level1"><h1>Longitudinal Studies</h1></section><section id="random-intercept-model" class="slide level2">
+<h1>Random Intercept Model</h1>
+<p>Let <span class="math inline">\(y_{ij}\)</span> represent the observation made at time <span class="math inline">\(t_j\)</span> on individual <span class="math inline">\(i\)</span>. A possible model for the observation <span class="math inline">\(y_{ij}\)</span> might be</p>
+<p><span class="math display">\[
+y_{ij} = \beta_0 + \beta_1 t_j + b_i + \varepsilon_{ij}.
+\]</span></p>
+<p>Here the total residual that would be present in the usual linear regression model has been partitioned into a subject-specific random component <span class="math inline">\(b_i\)</span> which is constant over time plus a residual <span class="math inline">\(\varepsilon_{ij}\)</span> which varies randomly over time.</p>
+<ul>
+<li><span class="math inline">\({\text{E}}(b_i) = 0\)</span> and <span class="math inline">\({\text{var}}(b) = \sigma^2_b\)</span></li>
+<li><span class="math inline">\({\text{E}}(\varepsilon_{ij}) = 0\)</span> with <span class="math inline">\({\text{var}}(\varepsilon_{ij}) = \sigma^2\)</span></li>
+<li><span class="math inline">\(b_i\)</span> and <span class="math inline">\(\varepsilon_{ij}\)</span> independent of each other and of time <span class="math inline">\(t_j\)</span></li>
+</ul>
+<p><span class="math display">\[
+{\text{var}}(y_{ij}) = {\text{var}}(u_i + \varepsilon_{ij}) = \sigma^2_b + \sigma^2
+\]</span></p>
+</section><section id="random-intercept" class="slide level2">
+<h1>Random intercept</h1>
+<p>The covariance between the total residuals at two time points <span class="math inline">\(j\)</span> and <span class="math inline">\(k\)</span> in the same individual is <span class="math inline">\({\text{cov}}(b_i + \varepsilon_{ij}, b_i + \varepsilon_{ik}) = \sigma^2_b\)</span>.</p>
+<p>Note that these covariances are induced by the shared random intercept; for individuals with <span class="math inline">\(b_i &gt; 0\)</span>, the total residuals will tend to be greater than the mean, for individuals with <span class="math inline">\(b_i &lt; 0\)</span> they will tend to be less than the mean.</p>
+<p><span class="math display">\[
+{\text{cor}}(b_i + \varepsilon_{ij}, b_i + \varepsilon_{ik})
+     = \frac{\sigma^2_b}{\sigma^2_b + \sigma^2}.
+\]</span></p>
+<p>This is an <em>intra-class correlation</em> interpreted as the proportion of the total residual variance that is due to residual variability between subjects.</p>
+</section><section id="random-intercept-and-slope-model" class="slide level2">
+<h1>Random intercept and slope model</h1>
+<p>In this model there are two types of random effects, the first modelling heterogeneity in intercepts, <span class="math inline">\(b_i\)</span>, and the second modelling heterogeneity in slopes, <span class="math inline">\(v_i\)</span>:</p>
+<p><span class="math display">\[
+y_{ij} = \beta_0 + \beta_1 t_j + b_i + v_i t_j + \varepsilon_{ij}
+\]</span></p>
+<p>The two random effects are assumed to have a bivariate normal distribution with zero means for both variables and variances <span class="math inline">\(\sigma^2_b\)</span> and <span class="math inline">\(\sigma^2_v\)</span> with covariance <span class="math inline">\(\sigma_{uv}\)</span>:</p>
+<p><span class="math display">\[
+{\text{var}}(b_i + v_i t_j + \varepsilon_{ij}) =
+\sigma^2_b + 2 \sigma_{bv} t_j + \sigma^2_v t_j^2 + \sigma^2
+\]</span></p>
+<p>which is no longer constant for different values of <span class="math inline">\(t_j\)</span>.</p>
+</section><section id="random-intercept-and-slope-model-1" class="slide level2">
+<h1>Random Intercept and Slope Model</h1>
+<p><span class="math display">\[
+{\text{cov}}(b_i + v_i t_j + \varepsilon_{ij},
+     b_i + v_i t_{k} + \varepsilon_{ik}) =
+    \sigma^2_b + \sigma_{bv} (t_j - t_{k}) +
+    \sigma^2_v t_jt_{k}
+\]</span></p>
+<p>is not constrained to be the same for all pairs <span class="math inline">\(t_j\)</span> and <span class="math inline">\(t_{k}\)</span>.</p>
+</section><section id="illustration-1" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>Beat the blues</strong></p>
+<p>Depression is a major public health problem across the world. Antidepressants are the front line treatment, but many patients either do not respond to them, or do not like taking them. The main alternative is psychotherapy, and the modern ‘talking treatments’ such as <em>cognitive behavioural therapy</em> (CBT) have been shown to be as effective as drugs, and probably more so when it comes to relapse.</p>
+<p>The data to be used in this chapter arise from a clinical trial of an interactive, multimedia program known as ‘Beat the Blues’ designed to deliver cognitive behavioural therapy to depressed patients via a computer terminal.</p>
+<p>In a randomised controlled trial of the program, patients with depression recruited in primary care were randomised to either the Beating the Blues program, or to ‘Treatment as Usual’ (TAU).</p>
+</section><section id="illustration-2" class="slide level2">
+<h1>Illustration</h1>
+<p>Here, we concentrate on the <em>Beck Depression Inventory II</em> (BDI). Measurements on this variable were made on the following five occasions:</p>
+<ul>
+<li>Prior to treatment,</li>
+<li>Two months after treatment began and</li>
+<li>At one, three and six months follow-up, i.e., at three, five and eight months after treatment.</li>
+</ul>
+<p>There is interest here in assessing the effect of taking antidepressant drugs (<code>drug</code>, yes or no) and length of the current episode of depression (<code>length</code>, less or more than six months).</p>
+</section></section>
+<section><section id="generalized-mixed-effects-models" class="titleslide slide level1"><h1>Generalized mixed-effects models</h1></section><section id="generalized-mixed-effects-models-1" class="slide level2">
+<h1>Generalized mixed-effects models</h1>
+<p>The Generalized linear mixed model is a straighforward extension of the generalized linear model, adding random effects to the linear predictors, and expressing the expected value of the response conditional of the random effects:</p>
+<p><span class="math display">\[
+\begin{align}
+g(\mu_{ij}) &amp;= g[{\text{E}}(y_{ij}) | b_{1i}, \dots, b_{1r}] = \eta_{ij} \\
+\eta_{ij} &amp;= \beta_0 + \beta_1 x_{1ij} + \dots + \beta_q x_{qij} +
+b_{1i} z_{1ij} + \dots + b_{ri}z_{rij}
+\end{align}
+\]</span></p>
+<ul>
+<li>The conditional distribution of <span class="math inline">\(y_{ij}\)</span> given the random effects is a member of the exponential family</li>
+<li>The variance of <span class="math inline">\(y_{ij}\)</span> is a function of <span class="math inline">\(\mu_{ij}\)</span> and a dispersion parameter <span class="math inline">\(\phi\)</span></li>
+<li>We further assume that the random effects are normally distributed with mean 0 and covariance matrix <span class="math inline">\(\boldsymbol\Psi\)</span></li>
+<li>The estimation of generalized linear mixed models by ML is not straightforward, because the likelihood function includes integrals that are analytically intractable.</li>
+</ul>
+</section></section>
+<section><section id="generalised-estimating-equations" class="titleslide slide level1"><h1>Generalised Estimating Equations</h1></section><section id="introduction-4" class="slide level2">
+<h1>Introduction</h1>
+<ul>
+<li>The assumption of the independence of the repeated measurements in an GLM will lead to estimated standard errors that are too small for the between-subjects covariates (at least when the correlation between the repeated measurements are positive) as a result of assuming that there are more independent data points than are justified.</li>
+</ul>
+<p>Robust variance estimates can help to obtain reasonably satisfactory results on longitudinal data with a non-normal response</p>
+<p>But perhaps more satisfactory than these methods to simply ‘fix-up’ the standard errors given by the independence model, would be an approach that fully utilises information on the data’s structure, including dependencies over time: <em>GEE</em>.</p>
+</section><section id="generalised-estimating-equations-gee" class="slide level2">
+<h1>Generalised Estimating Equations (GEE)</h1>
+<p>Let <span class="math inline">\(Y_{ij}\)</span> be a vector of random variables repre senting the responses on a given individual and let <span class="math inline">\({\text{E}}Y_{ij} = \mu_{ij}\)</span> which is linked to the predictors in some appropriate way</p>
+<p><span class="math display">\[
+g(\mu_{ij}) = {\mathbf{X}}_{ij}{\boldsymbol\beta}.
+\]</span></p>
+<p>and let</p>
+<p><span class="math display">\[{\text{var}}Y_{ij} = {\text{var}}(Y_{ij}; \alpha, \beta)\]</span></p>
+<p>where <span class="math inline">\(\alpha\)</span> represents parameters that model the correlation structure within individuals.</p>
+<p>Estimates for <span class="math inline">\(\beta\)</span> may be obtained based on the score equation</p>
+<p><span class="math display">\[
+\sum_i \frac{\partial \mu_i^T}{\partial \beta}{\text{var}}(Y_i)^{-1}(Y_i -
+\mu_i) = 0
+\]</span></p>
+<p>These can be seen as the multivariate analogue of those used for the quasi-likelihood.</p>
+</section><section id="generalised-estimating-equations-1" class="slide level2">
+<h1>Generalised Estimating Equations</h1>
+<p>Estimates of the parameters of most interest, i.e., those that determine the average responses over time, are still valid even when the correlation structure is incorrectly specified</p>
+<p>But their standard errors might remain poorly estimated if the working correlation matrix is far from the truth.</p>
+<p>Possibilities for the working correlation matrix that are most frequently used in practice are:</p>
+</section><section id="generalised-estimating-equations-2" class="slide level2">
+<h1>Generalised Estimating Equations</h1>
+<ul>
+<li>An identity matrix: no correlation at all.</li>
+<li>An exchangeable correlation matrix: with a single parameter which gives the correlation of each pair of repeated measures.</li>
+<li>An autoregressive correlation matrix: also with a single parameter but in which <span class="math inline">\(\text{corr}(y_i, y_k) = \vartheta^{|k - i|}, i \not =  k\)</span>. With <span class="math inline">\(\vartheta\)</span> less than one this gives a pattern in which repeated measures further apart in time are less correlated than those that are closer to one another.</li>
+<li>An unstructured correlation matrix: with <span class="math inline">\(K(K-1)/2\)</span> parameters in which <span class="math inline">\(\text{corr}(y_i, y_k) = \vartheta_{ik}\)</span> and where <span class="math inline">\(K\)</span> is the number of repeated measures.</li>
+</ul>
+<p>IMPORTANT: That’s a marginal model whereas GLMM is conditional on the random effects</p>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

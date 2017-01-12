@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Arthur Allignol" />
+  <title>Survival Analysis</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/data/git/reveal.js/css/reveal.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+
+<!-- For syntax highlighting using highlight.js-->
+    <link rel="stylesheet" href="/data/git/reveal.js/lib/css/github.css">
+  
+  <link rel="stylesheet" href="/data/git/reveal.js/css/theme/white.css" id="theme">
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '/data/git/reveal.js/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="/data/git/reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Survival Analysis</h1>
+    <h2 class="author">Arthur Allignol</h2>
+    <h3 class="date"></h3>
+</section>
+
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="introduction-1" class="slide level2">
+<h1>Introduction</h1>
+<p><em>Survival analysis</em> is used to analyse data for which the time until some event occurs is of interest. E.g.:</p>
+<ul>
+<li>Time from treatment begin to death in cancer patients</li>
+<li>Time from unemployment to employement</li>
+<li>Time to credit rating change</li>
+<li>Time to failure for car parts</li>
+</ul>
+<p>Such data generally require special techniques for analysis for two main reasons:</p>
+<ol type="1">
+<li>Survival data are generally not symmetrically distributed</li>
+<li>At the end of the study, some individuals may not have reached the endpoint of interest. The exact survival time is thus not known. We only know that it is larger than the amount of time the individual has been in the study. Such individuals are said to be <em>right-censored</em></li>
+</ol>
+</section></section>
+<section><section id="the-hazard-and-survival-functions" class="titleslide slide level1"><h1>The hazard and survival functions</h1></section><section id="the-hazard-and-survival-functions-1" class="slide level2">
+<h1>The hazard and survival functions</h1>
+<p>Let <span class="math inline">\(T_1, T_2, \dots, T_n\)</span> be i.i.d survival times of n individuals. Instead of modelling <span class="math inline">\(T\)</span> directly, we model functions thereof.</p>
+<p><strong>The hazard function:</strong></p>
+<p>The hazard function is defined as</p>
+<p><span class="math display">\[
+\alpha(t) = \lim_{\Delta t \to 0} \frac{{\text{Pr}}(T \in
+[t, t + \Delta t) | T \geq t)}{\Delta t}
+\]</span></p>
+<p>A more intuitive form</p>
+<p><span class="math display">\[
+\alpha(t){\text{d}}t = {\text{Pr}}(T \in {\text{d}}t | T \geq t)
+\]</span></p>
+<p><strong>Cumulative hazard function:</strong> <span class="math inline">\(A(t) = \int_0^t \alpha(u){\text{d}}u\)</span></p>
+</section><section id="the-survival-function" class="slide level2">
+<h1>The survival function</h1>
+<p>The <em>survival function</em>, <span class="math inline">\(S(t)\)</span>, is given by</p>
+<p><span class="math display">\[S(t) = {\text{Pr}}(T &gt; t) = 1 - F(t),\]</span></p>
+<p>where <span class="math inline">\(F(t)\)</span> is the cdf of <span class="math inline">\(T\)</span></p>
+<p>Knowing the cumulative hazard suffices to recover the survival function</p>
+<p><span class="math display">\[S(t) = \exp(-A(t))\]</span></p>
+<p>More interesting is to see that</p>
+<p><span class="math display">\[
+{\text{d}}A(u)=\alpha(u){\text{d}}u,
+\]</span></p>
+<p>with <span class="math inline">\({\text{d}}A(u)=A(u)-A(u-)\)</span>. Then</p>
+<p><span class="math display">\[1-{\text{d}}A(u)={\text{Pr}}(T \geq u+{\text{d}}u | T \geq u),\]</span></p>
+<p>which are conditional survival probabilities.</p>
+</section><section id="the-survival-function-1" class="slide level2">
+<h1>The survival function</h1>
+<p>Let partition the interval <span class="math inline">\([0, t]\)</span> into subintervals of the form</p>
+<p><span class="math display">\[
+0 = t_0 &lt; t_1 &lt; \dots &lt; t_j = t.
+\]</span></p>
+<p>In order to survive from 0 to <span class="math inline">\(t\)</span>, you need to survive the intermediate subintervals, thus</p>
+<p><span class="math display">\[
+\begin{aligned}
+  {\text{Pr}}(T &gt; t) &amp;\approx {\text{Pr}}(T &gt; t_1){\text{Pr}}(T &gt;
+  t_2 | T &gt; t_1)\dots{\text{Pr}}(T &gt; t_j | T &gt; t_{j - 1})\\
+  &amp;\approx (1 - \Delta A(t_1))(1 - \Delta A(t_2))\dots(1 - \Delta
+  A(t_j))\\
+  &amp;\approx \prod_{k = 1}^j \left(1 - \Delta A(t_k)\right)
+\end{aligned}
+\]</span></p>
+<p>with <span class="math inline">\(\Delta A(t_j) = A(t_j) - A(t_{j-1})\)</span>.</p>
+</section><section id="the-survival-function-2" class="slide level2">
+<h1>The survival function</h1>
+<p>Increasing the number of time points towards infinity and the distance between each time point toward 0, one ends up with an infinite product, namely the <em>product integral</em> and we write <span class="math inline">\({\huge \pi}\)</span>. Therefore,</p>
+<p><span class="math display">\[
+S(t) = \underset{u \in (0, t]}{\Huge \pi} \left(1 - {\text{d}}A(u)\right).
+\]</span></p>
+</section></section>
+<section><section id="censoring-and-truncation" class="titleslide slide level1"><h1>Censoring and truncation</h1></section><section id="censoring" class="slide level2">
+<h1>Censoring</h1>
+<p><strong>Right-censoring</strong></p>
+<p>The most common type of censoring. It happens when, e.g., an individual is still alive at the end of the study. Then we only observe</p>
+<p><span class="math display">\[ T = \min(X, C), \]</span></p>
+<p>with <span class="math inline">\(C\)</span> the censoring time and <span class="math inline">\(X\)</span> the survival time.</p>
+<ul>
+<li><em>Type I censoring</em>: a survival time <span class="math inline">\(X\)</span> is observed if it is no larger than a prespecified censoring time <span class="math inline">\(c\)</span> , otherwise we only know that X exceeds <span class="math inline">\(c\)</span></li>
+<li><em>Random censoring</em>: similar except that we consider the <span class="math inline">\(c\)</span>’s to be the observed values of the random variables <span class="math inline">\(C\)</span>’s independent of the <span class="math inline">\(X\)</span>’s</li>
+<li><em>Independent censoring</em>: censored individuals at <span class="math inline">\(t\)</span> are representative of the individuals still at risk of an event at <span class="math inline">\(t\)</span> givan the covariates</li>
+</ul>
+</section><section id="censoring-1" class="slide level2">
+<h1>Censoring</h1>
+<p><strong>Left-censoring</strong></p>
+<p>Left-censoring occurs when an event is known to have happened before a certain time. An example is seroconversion in HIV studies.</p>
+<p><strong>Interval-censoring</strong></p>
+<p>Happens when an event is known to occur within an interval. Typical example is development of a disease between two visits.</p>
+</section><section id="truncation" class="slide level2">
+<h1>Truncation</h1>
+<p><strong>Left-truncation/delayed entry</strong></p>
+<p>Left-truncation or delayed entry arises if the observation of an individual is conditional on the occurrence of a previous event other than the main event of interest, <span class="math inline">\(L &lt; T\)</span>, with <span class="math inline">\(L\)</span> a left-truncation/delayed entry time.</p>
+<p>It often happens if the natural timescale is to be used but time 0 precedes study entry.</p>
+<ul>
+<li>Time scale is time from diagnosis to death but individuals are sampled at a later time point. Those who died before will never be included in the study</li>
+</ul>
+<p><strong>Right-truncation</strong></p>
+<p>Individuals only included in a study if <span class="math inline">\(T \leq R\)</span>, <span class="math inline">\(R\)</span> a right-truncation time.</p>
+</section><section id="censoring-and-truncation-1" class="slide level2">
+<h1>Censoring and truncation</h1>
+<p>→ <em>Truncation</em> is different from <em>censoring</em> in that censoring is a missing data problem, but truncation is a sampling issue.</p>
+<p>→ <em>Choice of the time scale</em> might induce left-truncation (e.g., age as a time-scale)</p>
+<p>In the following, we assume the censoring/truncation to be independent.</p>
+</section></section>
+<section><section id="non-parametric-estimation" class="titleslide slide level1"><h1>Non-parametric estimation</h1></section><section id="counting-process" class="slide level2">
+<h1>Counting process</h1>
+<p>Consider n individuals with survival times <span class="math inline">\(T_i, i = 1, \dots, n\)</span>.</p>
+<p>Define</p>
+<p><span class="math display">\[N_i(t) = {\mathbf{I}}\{T_i \leq t\}\]</span></p>
+<p>and</p>
+<p><span class="math display">\[Y_i(t) = {\mathbf{I}}\{T_i \geq t\}\]</span></p>
+<p>Then <span class="math inline">\(N(t) = \sum_i N_i(t)\)</span> counts the number of events up to <span class="math inline">\(t\)</span> and <span class="math inline">\(Y(t) = \sum_i Y_i(t)\)</span> counts the number of individuals still under observation just before <span class="math inline">\(t\)</span>.</p>
+</section><section id="counting-process-1" class="slide level2">
+<h1>Counting process</h1>
+<p>With left-truncation/right-censoring, the data are represented by <span class="math inline">\((L, T, \delta)\)</span>,</p>
+<ul>
+<li><span class="math inline">\(L &lt; T\)</span></li>
+<li><span class="math inline">\(T = \min(X, C)\)</span>, <span class="math inline">\(X\)</span> and <span class="math inline">\(C\)</span> are the survival and right-censoring times, respectively</li>
+<li><span class="math inline">\(\delta = 1\)</span> if <span class="math inline">\(T = X\)</span>.</li>
+</ul>
+<p>The counting process and at-risk process are amended to</p>
+<ul>
+<li><span class="math inline">\(N_i(t) = {\mathbf{I}}\{T_i \leq t, \delta = 1\}\)</span></li>
+<li><span class="math inline">\(Y_i(t) = {\mathbf{I}}\{L_i &lt; T_i \leq t\}\)</span></li>
+</ul>
+</section><section id="non-parametric-estimation-1" class="slide level2">
+<h1>Non-parametric estimation</h1>
+<p><strong>Nelson-Aalen estimator</strong></p>
+<p>An estimator of <span class="math inline">\(\alpha(t){\text{d}}t\)</span> is given by</p>
+<p><span class="math display">\[
+\frac{\text{# events at $t$}}{\text{# at risk just prior to $t$}}
+= \frac{\Delta N(t)}{Y(t)}
+\]</span></p>
+<p>The <em>Nelson-Aalen estimator</em> of the cumulative hazard <span class="math inline">\(A(t) = \int \alpha(u){\text{d}}u\)</span> is</p>
+<p><span class="math display">\[\hat A(t) = \sum_{s \leq t} \frac{\Delta N(s)}{Y(s)}\]</span></p>
+<p>An estimator of the variance is given by</p>
+<p><span class="math display">\[\hat\sigma_{A}^2 = \sum_{s \leq t} \frac{\Delta N(s)}{Y^2(s)}\]</span></p>
+</section><section id="non-parametric-estimation-2" class="slide level2">
+<h1>Non-parametric estimation</h1>
+<p><strong>Kaplan-Meier estimator</strong></p>
+<p>An estimator of the survival function <span class="math inline">\(S(t)\)</span> is obtained by plugging in <span class="math inline">\(\hat A(t)\)</span> in the product integral</p>
+<p><span class="math display">\[
+\hat S(t) = \underset{u \in (0, t]}{\Huge \pi} \left(1 - {\text{d}}\hat A(u)\right)
+\]</span></p>
+<p>With a finite number of event times, the product integral can be written as a finite matrix product</p>
+<p><span class="math display">\[
+\hat S(t) = \prod_{s \leq t} \left(1 - \Delta \hat A(s)\right)
+\]</span></p>
+<p>This estimator is called the <em>Kaplan-Meier</em> or <em>product-limit</em> estimator.</p>
+<p>Greenwood’s formula leads to a variance estimator</p>
+<p><span class="math display">\[
+\sigma^2_{S} = \hat S^2(t)\sum_{s \leq t} \frac{\Delta N(s)}{\Delta N(s)(\Delta
+N(s) - Y(t))}
+\]</span></p>
+</section><section id="illustration" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>Comparison of medical therapies to aid smokers quit</strong></p>
+<p>The aim of the study was to compare a triple medication vs. nicotine patch in smokers with medical illnesses. This was a randomised clinical trial.</p>
+<p>Patients were followed up for up to 6 months.</p>
+<p>The primary outcome was time from randomisation to relapse (return to smoking). Individuals who remained non-smokers for 6 months were censored.</p>
+<pre class="r"><code>data(pharmacoSmoking, package = &quot;asaur&quot;)
+head(pharmacoSmoking, n = 3)</code></pre>
+<pre><code>   id ttr relapse         grp age gender  race employment yearsSmoking
+1  21 182       0   patchOnly  36   Male white         ft           26
+2 113  14       1   patchOnly  41   Male white      other           27
+3  39   5       1 combination  25 Female white      other           12
+  levelSmoking ageGroup2 ageGroup4 priorAttempts longestNoSmoke
+1        heavy     21-49     35-49             0              0
+2        heavy     21-49     35-49             3             90
+3        heavy     21-49     21-34             3             21</code></pre>
+</section><section id="illustration-1" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>Channing house retirement center</strong></p>
+<p>The data contain information on the age of death of 462 individuals who were in residence between Jan. 1964 and July 1975.</p>
+<p>The age at which the individuals entered the centre is also available.</p>
+<p>These data are better analysed using the age-scale, thus are left-truncated</p>
+<pre class="r"><code>data(channing, package = &quot;KMsurv&quot;)
+head(channing, n = 3)</code></pre>
+<pre><code>  obs death ageentry  age time gender
+1   1     1     1042 1172  130      2
+2   2     1      921 1040  119      2
+3   3     1      885 1003  118      2</code></pre>
+</section></section>
+<section><section id="cox-proportional-hazards-model" class="titleslide slide level1"><h1>Cox proportional hazards model</h1></section><section id="the-cox-proportional-hazards-model" class="slide level2">
+<h1>The Cox proportional hazards model</h1>
+<p>The Cox proportional hazards model assumes that</p>
+<p><span class="math display">\[
+\alpha(t|{\mathbf{X}}) = \alpha_0(t) \exp(\beta_1
+X_1 + \dots + \beta_q X_q)
+\]</span></p>
+<p>where <span class="math inline">\(\alpha_0(t)\)</span> is the <em>baseline hazard function</em> (an unspecified, non-negative hazard function)</p>
+<p>The interpretation of the parameter <span class="math inline">\(\beta_j\)</span> is that <span class="math inline">\(\exp(\beta_j)\)</span> gives the relative risk change associated with an increase of one unit in covariate <span class="math inline">\(x_j\)</span>, all other explanatory variables remaining constant. <span class="math inline">\(\exp(\beta_j)\)</span> is known as an <em>hazard ratio</em></p>
+</section><section id="the-cox-proportional-hazards-model-1" class="slide level2">
+<h1>The Cox proportional hazards model</h1>
+<p>Written in this way we see that the model forces the hazard ratio between two individuals to be <em>constant over time</em> since</p>
+<p><span class="math display">\[ \frac{\alpha(t | {\mathbf{X}}_1)}{\alpha(t | {\mathbf{X}}_2)} = \frac{\exp(\beta
+{\mathbf{X}}_1)}{\exp(\beta {\mathbf{X}}_2)} \]</span></p>
+<p>where <span class="math inline">\({\mathbf{X}}_1\)</span> and <span class="math inline">\({\mathbf{X}}_2\)</span> are vectors of covariate values for two individuals.</p>
+<p>Estimation of <span class="math inline">\(\beta\)</span> obtained through maximisation of the <em>partial likelihood</em></p>
+<p>The baseline cumulative hazard can be estimated with the <em>Breslow estimator</em></p>
+<p><span class="math display">\[
+\hat A_0(t) = \sum_{s \leq t} \frac{\Delta N(s)}{\sum_i
+Y_i(t)\exp(\beta{\mathbf{X}}_i)}
+\]</span></p>
+</section><section id="the-cox-proportional-hazards-model-2" class="slide level2">
+<h1>The Cox proportional hazards model</h1>
+<p>The main assumptions of the Cox model are</p>
+<ul>
+<li>linearity and additivity of the predictors wrt log hazard</li>
+<li><em>Proportional hazard assumption:</em> no time by predictor interactions, i.e., the effect of <span class="math inline">\(X\)</span> is constant over time</li>
+</ul>
+</section><section id="stratified-cox-models" class="slide level2">
+<h1>Stratified Cox models</h1>
+<p><span class="math inline">\(\approx\)</span> adjust for factors that are not modelled/we don’t want to model, e.g., clinical study site.</p>
+<p>The idea of <em>stratified</em> Cox models is to allow the form of the underlying hazard function to vary across levels of the stratification factors:</p>
+<p><span class="math display">\[\alpha_j(t|{\mathbf{X}}) = \alpha_{0;j}(t)\exp(\beta{\mathbf{X}})\]</span></p>
+<p>where <span class="math inline">\(\alpha_{0;j}\)</span> is the baseline hazard for the <span class="math inline">\(j\)</span>-th strata.</p>
+</section><section id="inference" class="slide level2">
+<h1>Inference</h1>
+<p>Standard likelihood inference tests are also available for the Cox partial likelihood.</p>
+<p><strong>Wald test</strong></p>
+<p><span class="math display">\[ \frac{\hat\beta}{\text{se}\hat\beta} \sim {\cal N}(0, 1) \]</span></p>
+<p><strong>Likelihood ratio test</strong></p>
+<p><span class="math display">\[2\left(l(\hat\beta) - l(\beta^{(0)})\right) \sim \chi^2\]</span></p>
+</section><section id="model-diagnostic" class="slide level2">
+<h1>Model diagnostic</h1>
+<p>No easy to use residuals as in linear models…</p>
+<p><strong>Testing the proportional assumtion</strong></p>
+<ul>
+<li><p>With a binary variable, plotting the estimated cumulative hazards within one covariate level against the respective estimate within another covariate level should approximate a straight line if the assumption holds.</p></li>
+<li><p>Compute a time-dependent hazard ratio, with <span class="math inline">\({\text{E}}(\text{scaled
+  Schoenfeld residuals}) + \beta_j \approx \beta_j(t)\)</span>. If the assumption holds, <span class="math inline">\(\beta_j(t) \approx\)</span> a straight line</p></li>
+</ul>
+<p><strong>Influence measures</strong></p>
+<p>The <em>Martingale residuals</em> can be used to detect influencial individuals (that die too early or live too long)</p>
+<p>They call also be used to assess the structural form of the model</p>
+</section><section id="illustration-2" class="slide level2">
+<h1>Illustration</h1>
+<p><strong>Comparison of medical therapies to aid smokers quit</strong></p>
+<p>The objective is now to compare the two treatment therapies in terms of relapse and identify other factors related to this outcome</p>
+</section><section id="time-dependent-variables" class="slide level2">
+<h1>Time-dependent variables</h1>
+<p>A time-dependent variable is a variable whose value changes over the course of time, e.g.,</p>
+<ul>
+<li>Multiple measurements of some labatory value</li>
+<li>Treatment/intervention change</li>
+</ul>
+<p>The Cox model can readily include such a covariate, say, <span class="math inline">\(X(t)\)</span></p>
+<p><span class="math display">\[\alpha(t|X(t)) = \alpha_{0}(t)\exp(\beta X(t))\]</span></p>
+</section><section id="time-dependent-variables-1" class="slide level2">
+<h1>Time-dependent variables</h1>
+<p>In practice, the data need to be represented in the following way</p>
+<table>
+<thead>
+<tr class="header">
+<th><code>id</code></th>
+<th><code>start</code> (<span class="math inline">\((\)</span>)</th>
+<th><code>stop</code> (<span class="math inline">\(]\)</span>)</th>
+<th><code>delta</code></th>
+<th><code>X</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>0</td>
+<td>5</td>
+<td>0</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>5</td>
+<td>10</td>
+<td>0</td>
+<td>20</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>0</td>
+<td>3</td>
+<td>0</td>
+<td>20</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>3</td>
+<td>7</td>
+<td>1</td>
+<td>40</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>0</td>
+<td>10</td>
+<td>1</td>
+<td>30</td>
+</tr>
+</tbody>
+</table>
+</section><section id="illustration-3" class="slide level2">
+<h1>Illustration</h1>
+<p>This data set is a random sample drawn from the SIR-3 study that aimed at analysing the effect of nosocomial infections on the length of ICU stay.</p>
+<p>The sample includes information to assess the effect of nosocomial pneumonia (a time-dependent variable) on the length of stay.</p>
+<p>The endpoint is either discharge alive from the ICU or dead in the unit. These data are censoring complete as the censoring time is known for all patients.</p>
+<pre class="r"><code>data(icu.pneu, package = &quot;kmi&quot;)
+icu.pneu[icu.pneu$id == &quot;3517&quot;, ]</code></pre>
+<pre><code>     id start stop status event pneu adm.cens.exit      age sex
+29 3517     0   20      0     3    0            20 71.13786   F
+30 3517    20   70      1     3    1           329 71.13786   F</code></pre>
+</section></section>
+    </div>
+  </div>
+
+
+  <script src="/data/git/reveal.js/lib/js/head.min.js"></script>
+  <script src="/data/git/reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,         // Display controls in the bottom right corner
+        progress: true,         // Display a presentation progress bar
+        history: true,          // Push each slide change to the browser history
+        center: true,                       // Vertical centering of slides
+        maxScale: 1.5,                  // Bounds for smallest/largest possible content scale
+        slideNumber: true,                // Display the page number of the current slide
+        theme: 'white', // available themes are in /css/theme
+        transition: 'convex', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '/data/git/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '/data/git/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: '/data/git/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: '/data/git/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            //          { src: '/data/git/reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: '/data/git/reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>

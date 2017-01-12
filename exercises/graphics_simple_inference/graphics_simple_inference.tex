@@ -1,0 +1,207 @@
+\documentclass[a4,11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+%% \title{Analysis of the {\ttfamily GSOEP9402} data}
+%% \author{Arthur Allignol}
+%% \date{}
+
+\usepackage{booktabs}
+\usepackage[osf]{sourcesanspro}
+\usepackage{sourcecodepro}
+\usepackage[T1]{fontenc}
+%\renewcommand*{\ttdefault}{sourcecodepro}
+\usepackage{subcaption}
+\usepackage{graphicx,rotating,epsfig,multirow,multicol,hhline}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{url}
+\usepackage{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{sfmath}
+
+
+\def\bea{\begin{eqnarray*}}
+\def\eea{\end{eqnarray*}}
+%Dense format
+\setlength{\parindent}{0em} \setlength{\textwidth}{16cm} \setlength{\textheight}{25cm}
+\setlength{\topmargin}{-0.5cm} \setlength{\oddsidemargin}{0cm} \setlength{\headheight}{0cm}
+\setlength{\headsep}{0cm}
+\newcommand{\nat}{{\it I\hspace{-0.12cm}N}}
+\pagestyle{empty}
+
+
+\newcommand{\p}{{\rm P}}
+\newcommand{\erw}{{\rm E}}
+\newcommand{\var}{{\rm var}}
+\newcommand{\eins}{{\bf 1}}%{\mathbf{1}}
+\newcommand{\dif}{{\rm d}}
+\newcommand{\cif}{{\rm CIF}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\D}{\mathrm{d}}
+
+%Special commands:
+\newcommand{\Bin}{\operatorname{Bin}} % Binomial Distribution
+\newcommand{\NegBin}{\operatorname{NegBin}} % Negative Bin
+\newcommand{\HypGeom}{\operatorname{HypGeom}} % Hypergeometric Distribution
+\newcommand{\Pois}{\operatorname{Po}} % Hypergeometric Distribution
+\newcommand{\Po}{\operatorname{Po}} %
+\newcommand{\Exp}{\operatorname{Exp}} %
+\newcommand{\Par}{\operatorname{Par}} %
+\newcommand{\Ga}{\mathcal{G}a} %
+\newcommand{\Be}{\mathcal{B}e} %
+\newcommand{\Var}{\operatorname{Var}} %
+\newcommand{\E}{\operatorname{E}} %
+\newcommand{\Cov}{\operatorname{Cov}} %
+\newcommand{\MSE}{\operatorname{MSE}}
+
+\DeclareMathOperator{\Nor}{N} % Normal -
+\DeclareMathOperator{\Log}{Log} % Logistische Verteilung -
+\newcommand{\ml}[2][1]{% % für Maximum-Likelihood-Schätzer von #1
+\ifthenelse{#1 = 1}%
+ {\hat{#2}_{\scriptscriptstyle{ML}}}%
+ {\hat{#2}^{#1}_{\scriptscriptstyle{ML}}}% z.B. für sigmadach^2
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Environment for Aufgaben
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter{ka}
+
+
+\newtheorem{exercise}{Problem}
+\newenvironment{aufgabe}{\begin{exercise}\sf}{\end{exercise} \bigskip}
+
+\newcommand{\footer}{ \vfill
+  \mbox{}\hrulefill\\
+  Upload your solutions until the 2.6.2016, 10h00 s.t. on
+  Moodle. Only one solution per group. Please upload the source files
+  as well as the solutions.}
+%\xxivtime   Uhrzeit für letzte Änderung
+
+\pagestyle{empty}
+
+\renewcommand{\labelenumi}{(\alph{enumi})}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\renewcommand{\baselinestretch}{1}
+
+\hrulefill\\
+{\bf WiMa-Praktikum II -- Stochastic} \hspace{\fill} Summer term 2016\\
+Arthur Allignol \hspace{\fill} 23.5.2016\\[-1.2ex]
+\mbox{}\hrulefill\\
+\newline \renewcommand{\baselinestretch}{1}
+\setcounter{ka}{0} \vspace{-0.5cm}
+
+
+
+\begin{center}
+\large{{\bf Exercise Sheet 3 --- Graphics and Simple Inference}}
+\end{center}
+
+
+
+\begin{aufgabe}{{\bf Acupuncture for chronic headache in primary care:
+      large, pragmatic, randomised trial}}
+
+  Consider the data set {\tt acupuncture\_trial.xls} that contains
+  data of a study on acupuncture for the treatment of chronic headache
+  disorders. Information on the data and the original paper can be
+  found at \url{http://www.bmj.com/content/328/7442/744.full}. The
+  variables that we will consider for analysis are
+  \begin{description}
+  \item[{\tt id}] identification number
+  \item[{\tt age}] age
+  \item[{\tt sex}] gender
+  \item[{\tt group}] 0: control; 1: acupuncture
+  \item[{\tt pk1}, {\tt pk2}, {\tt pk5}] Severity of headache at
+    visits at baseline, 6 month and 1 year, respectively. The severity
+    score is assessed on a likert scale that ranges from 0: ``no
+    headache'' to 5: ``Intense, incapacitating headache''. Severity of
+    headache was recorded four times a day and the total summed to
+    give a headache score
+  \item[{\tt f1} to {\tt f5}] Frequency of headache
+  \item[{\tt gen1} to {\tt gen5}] SF36 general health score. The SF36
+    is a quality of life questionnaire looking at several dimensions
+    of well being. The general health score is a summary quantity. 
+  \item[{\tt completer}] 1 if the patient gave data until the end of
+    the trial 
+  \end{description}
+  
+  \begin{enumerate}
+  \item Compare the change between baseline and 1 year of severity of
+    headache, frequency of headache and SF36 general health score
+    between the controls and acupuncture groups. Discuss on which test
+    is appropriate for each outcome variables. 
+  \item The significance level for each of the three tests is fixed at
+    $\alpha = 5\%$. What is the probability of making at least 1 error
+    in the 3 tests?
+  \item Devise graphics that explore the evolution of the severity
+    score, frequency of headaches and SF36 general health score over
+    the 3 visits in each group. Conclude.
+  \item Perform a graphical analysis to study whether age, gender and
+    migraine influence the response to treatment, e.g., does
+    acupuncture works better for migraine patients as compared to
+    controls?
+  \item Compare the change between baseline and visit 2 of severity of
+    headache between patients who completed the trial and those who
+    haven't (variable {\tt completer}). Are the conclusions drawn in
+    question (a) still appropriate?
+  \end{enumerate}
+
+\end{aufgabe}
+
+\footer
+
+
+\end{document}
