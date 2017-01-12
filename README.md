@@ -47,29 +47,54 @@ The following references and sources were used for the development of
 this course.
 
 - *A handbook of statistical analyses using R*, third edition
+
   Torsten Hothorn and Brian S. Everitt
+  
   CRC Press 2014
+  
 - *Linear Models with R*, 
+
   Julian J. Faraway
+  
   Chapman & Hall/CRC
+  
 - *Extending the Linear Model with R*
+
   Julian J. Faraway
+  
   Chapman & Hall/CRC
+  
 - *The Elements of Statistical Learning*
+
   Trevor Hastie, Robert Tibshirani, Jerome Freedman
+  
   Springer
+  
 - *An Introduction to Statistical Learning*
+
   Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani
+  
   Springer
-- *Survival analysis, techniques for censored and truncated data*, second edition
+  
+- *Survival analysis, techniques for censored and truncated data*,
+  second edition
+  
   John P. Klein, Melvin L. Moeschberger
+  
   Springer
+  
 - *Applied survival analysis using R*
+
   Dirk F Moore
+  
   Springer
+  
 - *Linear mixed-effects models using R*
+
   Andrzej Galecki, Thomasz Burzykowski
+  
   Springer
+  
 - http://www.math.chalmers.se/Stat/Grundutb/GU/MSG500/A13/Lecture10.pdf
 - http://socserv.socsci.mcmaster.ca/jfox/Courses/soc740/lecture-5-notes.pdf
 - http://www.econ.uiuc.edu/~wsosa/econ471/GLSHeteroskedasticity.pdf
